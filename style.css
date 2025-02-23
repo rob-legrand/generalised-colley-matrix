@@ -1,0 +1,23 @@
+@charset "UTF-8";
+
+html {
+   box-sizing: border-box;
+}
+
+*, *:before, *:after {
+   box-sizing: inherit;
+}
+
+body {
+   align-items: center;
+   background-color: rgb(255, 250, 245);
+   display: flex;
+   flex-direction: column;
+   font-family: Georgia, serif;
+   justify-content: center;
+}
+
+h1 {
+   color: rgb(34, 68, 102);
+   text-align: center;
+}

@@ -1,7 +1,6 @@
-/*jslint devel: true, indent: 3 */
-// https://jsbin.com/bagavorabu/edit?js,console
+/*jslint browser: true, indent: 3 */
 
-(function () {
+document.addEventListener('DOMContentLoaded', function () {
    'use strict';
    var colley;
 
@@ -67,6 +66,11 @@
       self = {
          addMatchResult: function (league, teamName1, points1, teamName2, points2) {
             var teamNames, whichTeam1, whichTeam2;
+            points1 = Number(points1);
+            points2 = Number(points2);
+            if (!isFinite(points1) || !isFinite(points2)) {
+               return;
+            }
             league = util.addTeam(util.addTeam(league, teamName1), teamName2);
             teamNames = league.map(function (team) {
                return team.name;
@@ -120,40 +124,52 @@
    }());
 
    (function () {
-      var league, moreTimes;
+      var colleyLeague, updateColleyLeague;
 
-      league = colley.createLeague();
-      league = colley.addMatchResult(league, 'A', 1, 'C', 0);
-      league = colley.addMatchResult(league, 'B', 1, 'E', 0);
-      league = colley.addMatchResult(league, 'C', 1, 'B', 0);
-      league = colley.addMatchResult(league, 'C', 1, 'D', 0);
-      league = colley.addMatchResult(league, 'D', 1, 'A', 0);
-      league = colley.addMatchResult(league, 'E', 1, 'A', 0);
-      league = colley.addMatchResult(league, 'E', 1, 'C', 0);
-      /*
-      league = colley.createLeague();
-      league = colley.addMatchResult(league, 'A', 1, 'B', 1);
-      league = colley.addMatchResult(league, 'A', 4, 'C', 0);
-      league = colley.addMatchResult(league, 'B', 1, 'C', 1);
-      league = colley.addMatchResult(league, 'A', 4, 'F', 0);
-      league = colley.addMatchResult(league, 'B', 4, 'E', 0);
-      league = colley.addMatchResult(league, 'C', 4, 'D', 0);
-      league = colley.addMatchResult(league, 'D', 4, 'E', 0);
-      league = colley.addMatchResult(league, 'D', 4, 'F', 0);
-      league = colley.addMatchResult(league, 'E', 4, 'F', 0);
-      */
+      updateColleyLeague = function () {
+         var standings;
+         // FIXME output Colley results in a nicer format (actual table?)
+         standings = colleyLeague.map(function (team) {
+            return {
+               name: team.name,
+               rating: team.ratingEarned,
+               averagePointsPerMatch: team.actualPointsEarned / team.numMatchesVersus.reduce(function (numMatchesSoFar, timesPlayed) {
+                  return numMatchesSoFar + timesPlayed;
+               }, 0)
+            };
+         });
+         standings.sort(function (team1, team2) {
+            return team2.rating - team1.rating;
+         });
+         standings.forEach(function (team) {
+            document.querySelector('#colley-output').value += team.name + ': ' + team.rating.toFixed(6) + ' ' + team.averagePointsPerMatch.toFixed(6) + '\n';
+         });
+      };
 
-      console.log(league);
-      console.log('---------------------------');
-      league = colley.iterateRatings(league);
-      console.log(league);
-      console.log('---------------------------');
-      for (moreTimes = 100; moreTimes > 0; moreTimes -= 1) {
-         league = colley.iterateRatings(league);
-      }
-      console.log(league);
-      league.forEach(function (team) {
-         console.log('team ' + team.name + ': ' + team.ratingEarned);
-      });
+      document.querySelector('#get-colley-rankings').addEventListener('click', function () {
+         var moreTimes;
+
+         colleyLeague = colley.createLeague();
+
+         // FIXME read matches from document.querySelector('#match-results-input').value
+         document.querySelector('#match-results-input').value.split('\n').forEach(function (inputLine) {
+            inputLine = inputLine.split(',');
+            if (inputLine.length >= 2) {
+               inputLine[0] = inputLine[0].replace(/\s+/g, ' ').trim().split(' ');
+               inputLine[1] = inputLine[1].replace(/\s+/g, ' ').trim().split(' ');
+               if (inputLine[0].length >= 2 && inputLine[1].length >= 2) {
+                  colleyLeague = colley.addMatchResult(colleyLeague, inputLine[0][0], Number(inputLine[0][1]), inputLine[1][0], Number(inputLine[1][1])); // FIXME better way?
+               }
+            }
+         });
+
+         // FIXME instead, repeat until differences from last one are small enough
+         for (moreTimes = 100; moreTimes > 0; moreTimes -= 1) {
+            colleyLeague = colley.iterateRatings(colleyLeague);
+         }
+         updateColleyLeague();
+      }, false);
+
+      updateColleyLeague();
    }());
-}());
+}, false);
