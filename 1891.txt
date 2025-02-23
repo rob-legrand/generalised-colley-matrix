@@ -1,150 +1,150 @@
-bed 0, nrt 4
-bed 1, buc 1
-bed 4, nrf 0
-bed 4, oxf 0
-buc 0, oxf 4
-buc 1, bed 1
-che 1, sta 1
-che 4, war 0
-der 0, lei 4
-der 0, not 4
-der 1, war 1
-der 1, yor 1
-der 4, ess 0
-dur 0, nrd 4
-dur 0, yor 4
-dur 1, lin 1
-dur 4, war 0
-ess 0, ham 4
-ess 0, lan 4
-ess 1, sur 1
-ess 4, der 0
-ess 4, lei 0
-ess 4, war 0
-glo 0, lan 4
-glo 0, som 4
-glo 0, sur 4
-glo 0, sus 4
-glo 0, yor 4
-glo 1, ken 1
-glo 1, mid 1
-glo 1, not 1
-ham 0, ess 4
-ham 0, lei 4
-ham 0, sur 4
-ham 0, sus 4
-ham 1, sta 1
-her 0, dev 4
-her 1, lin 1
-her 1, nrf 1
-her 1, nrt 1
-ken 0, lan 4
-ken 0, som 4
-ken 0, sur 4
-ken 1, glo 1
-ken 1, not 1
-ken 1, sus 1
-ken 4, mid 0
-ken 4, war 0
-ken 4, yor 0
-lan 0, mid 4
-lan 0, sur 4
-lan 1, not 1
-lan 1, sus 1
-lan 4, ess 0
-lan 4, glo 0
-lan 4, lei 0
-lan 4, som 0
-lan 4, war 0
-lan 4, yor 0
-lei 0, der 4
-lei 0, ham 4
-lei 0, lan 4
-lei 0, sur 4
-lei 1, ess 1
-lei 1, yor 1
-lei 4, sta 0
-lei 4, war 0
-lin 0, nrd 4
-lin 4, dur 0
-lin 4, her 0
-lin 4, nrf 0
-lin 4, nrt 0
-mid 0, ken 4
-mid 0, yor 4
-mid 1, som 1
-mid 4, glo 0
-mid 4, lan 0
-mid 4, not 0
-mid 4, sur 0
-mid 4, sus 0
-not 0, glo 4
-not 0, sur 4
-not 1, ken 1
-not 1, mid 1
-not 4, der 0
-not 4, lan 0
-not 4, sus 0
-not 4, yor 0
-nrd 1, dur 1
-nrd 1, lin 1
-nrf 4, bed 0
-nrf 4, her 0
-nrf 4, lin 0
-nrt 0, bed 4
-nrt 1, her 1
-nrt 1, lin 1
-nrt 1, sta 1
-oxf 1, wil 1
-oxf 4, bed 0
-oxf 4, buc 0
-som 0, ken 4
-som 0, lan 4
-som 0, mid 4
-som 0, yor 4
-som 4, glo 0
-som 4, sur 0
-sta 0, che 4
-sta 0, lei 4
-sta 4, ham 0
-sta 4, nrt 0
-sur 0, der 4
-sur 1, lan 1
-sur 1, sus 1
-sur 4, ess 0
-sur 4, glo 0
-sur 4, ham 0
-sur 4, ken 0
-sur 4, lei 0
-sur 4, mid 0
-sur 4, not 0
-sur 4, som 0
-sur 4, war 0
-sur 4, yor 0
-sus 0, glo 4
-sus 0, lan 4
-sus 0, not 4
-sus 0, sur 4
-sus 0, yor 4
-sus 4, ham 0
-sus 4, ken 0
-sus 4, mid 0
-war 0, der 4
-war 0, ken 4
-war 0, lei 4
-war 0, sur 4
-war 0, yor 4
-war 1, ess 1
-war 4, che 0
-wil 0, oxf 4
-yor 0, der 4
-yor 0, lan 4
-yor 0, lei 4
-yor 0, mid 4
-yor 0, not 4
-yor 0, som 4
-yor 0, sur 4
-yor 0, sus 4
-yor 1, ken 1
-yor 4, glo 0
-yor 4, war 0
+bed D buc
+bed L nrt
+bed W nrf
+bed W oxf
+buc D bed
+buc L oxf
+che D sta
+che W war
+der D war
+der D yor
+der L lei
+der L not
+der W ess
+dur D lin
+dur L nrd
+dur L yor
+dur W war
+ess D sur
+ess L ham
+ess L lan
+ess W der
+ess W lei
+ess W war
+glo D ken
+glo D mid
+glo D not
+glo L lan
+glo L som
+glo L sur
+glo L sus
+glo L yor
+ham D sta
+ham L ess
+ham L lei
+ham L sur
+ham L sus
+her D lin
+her D nrf
+her D nrt
+her L dev
+ken D glo
+ken D not
+ken D sus
+ken L lan
+ken L som
+ken L sur
+ken W mid
+ken W war
+ken W yor
+lan D not
+lan D sus
+lan L mid
+lan L sur
+lan W ess
+lan W glo
+lan W lei
+lan W som
+lan W war
+lan W yor
+lei D ess
+lei D yor
+lei L der
+lei L ham
+lei L lan
+lei L sur
+lei W sta
+lei W war
+lin L nrd
+lin W dur
+lin W her
+lin W nrf
+lin W nrt
+mid D som
+mid L ken
+mid L yor
+mid W glo
+mid W lan
+mid W not
+mid W sur
+mid W sus
+not D ken
+not D mid
+not L glo
+not L sur
+not W der
+not W lan
+not W sus
+not W yor
+nrd D dur
+nrd D lin
+nrf W bed
+nrf W her
+nrf W lin
+nrt D her
+nrt D lin
+nrt D sta
+nrt L bed
+oxf D wil
+oxf W bed
+oxf W buc
+som L ken
+som L lan
+som L mid
+som L yor
+som W glo
+som W sur
+sta L che
+sta L lei
+sta W ham
+sta W nrt
+sur D lan
+sur D sus
+sur L der
+sur W ess
+sur W glo
+sur W ham
+sur W ken
+sur W lei
+sur W mid
+sur W not
+sur W som
+sur W war
+sur W yor
+sus L glo
+sus L lan
+sus L not
+sus L sur
+sus L yor
+sus W ham
+sus W ken
+sus W mid
+war D ess
+war L der
+war L ken
+war L lei
+war L sur
+war L yor
+war W che
+wil L oxf
+yor D ken
+yor L der
+yor L lan
+yor L lei
+yor L mid
+yor L not
+yor L som
+yor L sur
+yor L sus
+yor W glo
+yor W war

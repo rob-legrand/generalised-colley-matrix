@@ -117,7 +117,9 @@ document.addEventListener('DOMContentLoaded', function () {
                newLeague[whichTeam].effectivePointsConceded = team.actualPointsConceded + strengthOfScheduleFactor * (numMatchesPlayed * averageActualPointsPerMatch - opponentsRatingEarned);
                newLeague[whichTeam].ratingConceded = (laplaceEquivalentMatches * averageActualPointsPerMatch + newLeague[whichTeam].effectivePointsConceded) / (laplaceEquivalentMatches + numMatchesPlayed);
             });
-            return newLeague;
+            return util.deepFreeze(newLeague);
+         },
+         totalRatingsDifference: function (league1, league2) {
          }
       };
       return Object.freeze(self);
@@ -128,48 +130,64 @@ document.addEventListener('DOMContentLoaded', function () {
 
       updateColleyLeague = function () {
          var standings;
-         // FIXME output Colley results in a nicer format (actual table?)
          standings = colleyLeague.map(function (team) {
             return {
                name: team.name,
-               rating: team.ratingEarned,
+               ratingEarned: team.ratingEarned,
+               ratingConceded: team.ratingConceded,
                averagePointsPerMatch: team.actualPointsEarned / team.numMatchesVersus.reduce(function (numMatchesSoFar, timesPlayed) {
                   return numMatchesSoFar + timesPlayed;
                }, 0)
             };
          });
          standings.sort(function (team1, team2) {
-            return team2.rating - team1.rating;
+            return team2.ratingEarned - team1.ratingEarned;
          });
+         document.querySelector('#colley-output').value = '';
          standings.forEach(function (team) {
-            document.querySelector('#colley-output').value += team.name + ': ' + team.rating.toFixed(6) + ' ' + team.averagePointsPerMatch.toFixed(6) + '\n';
+            document.querySelector('#colley-output').value += team.name + ': ' + team.ratingEarned.toFixed(6) + ' ' + team.ratingConceded.toFixed(6) + ' ' + team.averagePointsPerMatch.toFixed(6) + '\n';
          });
       };
 
       document.querySelector('#get-colley-rankings').addEventListener('click', function () {
-         var moreTimes;
+         var moreTimes, pointValues;
+
+         pointValues = (function () {
+            var pointValuesSelect, resultPoints;
+            pointValuesSelect = document.querySelector('#point-values');
+            resultPoints = pointValuesSelect.options[pointValuesSelect.selectedIndex].value.split(',').map(function (resultPoint) {
+               return Number(resultPoint);
+            });
+            return {
+               w: [resultPoints[0], resultPoints[3]],
+               td: [resultPoints[1], resultPoints[2]],
+               t: [resultPoints[1], resultPoints[1]],
+               d: [resultPoints[2], resultPoints[2]],
+               dt: [resultPoints[2], resultPoints[1]],
+               l: [resultPoints[3], resultPoints[0]]
+            };
+         }());
 
          colleyLeague = colley.createLeague();
 
-         // FIXME read matches from document.querySelector('#match-results-input').value
          document.querySelector('#match-results-input').value.split('\n').forEach(function (inputLine) {
-            inputLine = inputLine.split(',');
-            if (inputLine.length >= 2) {
-               inputLine[0] = inputLine[0].replace(/\s+/g, ' ').trim().split(' ');
-               inputLine[1] = inputLine[1].replace(/\s+/g, ' ').trim().split(' ');
-               if (inputLine[0].length >= 2 && inputLine[1].length >= 2) {
-                  colleyLeague = colley.addMatchResult(colleyLeague, inputLine[0][0], Number(inputLine[0][1]), inputLine[1][0], Number(inputLine[1][1])); // FIXME better way?
+            inputLine = inputLine.replace(/\s+/g, ' ').trim().split(' ');
+            if (inputLine.length >= 3) {
+               inputLine[1] = inputLine[1].toLowerCase();
+               if (pointValues.hasOwnProperty(inputLine[1])) {
+                  colleyLeague = colley.addMatchResult(colleyLeague, inputLine[0], pointValues[inputLine[1]][0], inputLine[2], pointValues[inputLine[1]][1]);
                }
             }
          });
 
-         // FIXME instead, repeat until differences from last one are small enough
          for (moreTimes = 100; moreTimes > 0; moreTimes -= 1) {
             colleyLeague = colley.iterateRatings(colleyLeague);
          }
+
          updateColleyLeague();
       }, false);
 
+      colleyLeague = colley.createLeague();
       updateColleyLeague();
    }());
 }, false);
