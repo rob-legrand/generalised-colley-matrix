@@ -34,10 +34,10 @@ ham L ess
 ham L lei
 ham L sur
 ham L sus
-her D lin
-her D nrf
-her D nrt
-her L dev
+hrt D lin
+hrt D nrf
+hrt D nrt
+hrt L dev
 ken D glo
 ken D not
 ken D sus
@@ -67,7 +67,7 @@ lei W sta
 lei W war
 lin L nrd
 lin W dur
-lin W her
+lin W hrt
 lin W nrf
 lin W nrt
 mid D som
@@ -89,9 +89,9 @@ not W yor
 nrd D dur
 nrd D lin
 nrf W bed
-nrf W her
+nrf W hrt
 nrf W lin
-nrt D her
+nrt D hrt
 nrt D lin
 nrt D sta
 nrt L bed

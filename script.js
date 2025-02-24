@@ -88,38 +88,54 @@ document.addEventListener('DOMContentLoaded', function () {
          createLeague: function (oldLeague) {
             return util.deepFreeze(util.createLeague(oldLeague));
          },
-         iterateRatings: function (oldLeague) {
-            var averageActualPointsPerMatch, newLeague, numMatches;
-            numMatches = oldLeague.reduce(function (numMatchesSoFar, team) {
-               return numMatchesSoFar + team.numMatchesVersus.reduce(function (numMatchesSoFar, timesPlayed) {
-                  return numMatchesSoFar + timesPlayed;
+         getAveragePointsPerMatch: function (leagueOrTeam) {
+            if (Array.isArray(leagueOrTeam)) {
+               return leagueOrTeam.reduce(function (numPointsSoFar, team) {
+                  return numPointsSoFar + team.actualPointsEarned;
+               }, 0) / self.getNumMatches(leagueOrTeam);
+            }
+            return leagueOrTeam.actualPointsEarned / self.getNumMatches(leagueOrTeam);
+         },
+         getNumMatches: function (leagueOrTeam) {
+            if (Array.isArray(leagueOrTeam)) {
+               return leagueOrTeam.reduce(function (numMatchesSoFar, team) {
+                  return numMatchesSoFar + self.getNumMatches(team);
                }, 0);
+            }
+            return leagueOrTeam.numMatchesVersus.reduce(function (numMatchesSoFar, timesPlayed) {
+               return numMatchesSoFar + timesPlayed;
             }, 0);
-            averageActualPointsPerMatch = oldLeague.reduce(function (numPointsSoFar, team) {
-               return numPointsSoFar + team.actualPointsEarned;
-            }, 0) / numMatches;
+         },
+         getOpponentsTotalRatingsConceded: function (league, whichTeam) {
+            return league[whichTeam].numMatchesVersus.reduce(function (effectivePointsSoFar, timesPlayed, whichOpponent) {
+               return effectivePointsSoFar + timesPlayed * (typeof league[whichOpponent].ratingConceded === 'number' ? league[whichOpponent].ratingConceded : self.getAveragePointsPerMatch(league));
+            }, 0);
+         },
+         getOpponentsTotalRatingsEarned: function (league, whichTeam) {
+            return league[whichTeam].numMatchesVersus.reduce(function (effectivePointsSoFar, timesPlayed, whichOpponent) {
+               return effectivePointsSoFar + timesPlayed * (typeof league[whichOpponent].ratingEarned === 'number' ? league[whichOpponent].ratingEarned : self.getAveragePointsPerMatch(league));
+            }, 0);
+         },
+         iterateRatings: function (oldLeague) {
+            var averageActualPointsPerMatch, newLeague;
+            averageActualPointsPerMatch = self.getAveragePointsPerMatch(oldLeague);
             newLeague = util.createLeague(oldLeague);
             oldLeague.forEach(function (team, whichTeam) {
-               var laplaceEquivalentMatches, numMatchesPlayed, opponentsRatingConceded, opponentsRatingEarned, strengthOfScheduleFactor;
-               strengthOfScheduleFactor = 1; // default 1; should be nonnegative and maybe no more than 1
-               laplaceEquivalentMatches = 2; // default 2; should be positive
-               numMatchesPlayed = team.numMatchesVersus.reduce(function (numMatchesSoFar, timesPlayed) {
-                  return numMatchesSoFar + timesPlayed;
-               }, 0);
-               opponentsRatingConceded = team.numMatchesVersus.reduce(function (effectivePointsSoFar, timesPlayed, whichOpponent) {
-                  return effectivePointsSoFar + timesPlayed * (typeof oldLeague[whichOpponent].ratingConceded === 'number' ? oldLeague[whichOpponent].ratingConceded : averageActualPointsPerMatch);
-               }, 0);
-               newLeague[whichTeam].effectivePointsEarned = team.actualPointsEarned + strengthOfScheduleFactor * (numMatchesPlayed * averageActualPointsPerMatch - opponentsRatingConceded);
+               var laplaceEquivalentMatches, numMatchesPlayed, strengthOfScheduleFactor;
+               strengthOfScheduleFactor = 1; // Colley's default 1; should be nonnegative and maybe no more than 1
+               laplaceEquivalentMatches = 1; // Colley's default 2; should be positive
+               numMatchesPlayed = self.getNumMatches(team);
+               newLeague[whichTeam].effectivePointsEarned = team.actualPointsEarned + strengthOfScheduleFactor * (numMatchesPlayed * averageActualPointsPerMatch - self.getOpponentsTotalRatingsConceded(oldLeague, whichTeam));
                newLeague[whichTeam].ratingEarned = (laplaceEquivalentMatches * averageActualPointsPerMatch + newLeague[whichTeam].effectivePointsEarned) / (laplaceEquivalentMatches + numMatchesPlayed);
-               opponentsRatingEarned = team.numMatchesVersus.reduce(function (effectivePointsSoFar, timesPlayed, whichOpponent) {
-                  return effectivePointsSoFar + timesPlayed * (typeof oldLeague[whichOpponent].ratingEarned === 'number' ? oldLeague[whichOpponent].ratingEarned : averageActualPointsPerMatch);
-               }, 0);
-               newLeague[whichTeam].effectivePointsConceded = team.actualPointsConceded + strengthOfScheduleFactor * (numMatchesPlayed * averageActualPointsPerMatch - opponentsRatingEarned);
+               newLeague[whichTeam].effectivePointsConceded = team.actualPointsConceded + strengthOfScheduleFactor * (numMatchesPlayed * averageActualPointsPerMatch - self.getOpponentsTotalRatingsEarned(oldLeague, whichTeam));
                newLeague[whichTeam].ratingConceded = (laplaceEquivalentMatches * averageActualPointsPerMatch + newLeague[whichTeam].effectivePointsConceded) / (laplaceEquivalentMatches + numMatchesPlayed);
             });
             return util.deepFreeze(newLeague);
          },
          totalRatingsDifference: function (league1, league2) {
+            return league1.reduce(function (diffSoFar, team, whichTeam) {
+               return diffSoFar + Math.abs(team.ratingEarned - league2[whichTeam].ratingEarned);
+            }, 0);
          }
       };
       return Object.freeze(self);
@@ -130,27 +146,59 @@ document.addEventListener('DOMContentLoaded', function () {
 
       updateColleyLeague = function () {
          var standings;
-         standings = colleyLeague.map(function (team) {
+         standings = colleyLeague.map(function (team, whichTeam) {
             return {
                name: team.name,
                ratingEarned: team.ratingEarned,
                ratingConceded: team.ratingConceded,
-               averagePointsPerMatch: team.actualPointsEarned / team.numMatchesVersus.reduce(function (numMatchesSoFar, timesPlayed) {
-                  return numMatchesSoFar + timesPlayed;
-               }, 0)
+               opponentsRatingEarned: colley.getOpponentsTotalRatingsEarned(colleyLeague, whichTeam) / colley.getNumMatches(team),
+               opponentsRatingConceded: colley.getOpponentsTotalRatingsConceded(colleyLeague, whichTeam) / colley.getNumMatches(team),
+               averagePointsPerMatch: colley.getAveragePointsPerMatch(team)
             };
          });
          standings.sort(function (team1, team2) {
-            return team2.ratingEarned - team1.ratingEarned;
+            if (team1.ratingEarned !== team2.ratingEarned) {
+               return team2.ratingEarned - team1.ratingEarned;
+            }
+            return team1.name.localeCompare(team2.name);
          });
-         document.querySelector('#colley-output').value = '';
+         document.querySelector('#colley-output').value = '       RE       RC       ORE      ORC      P/M\n';
          standings.forEach(function (team) {
-            document.querySelector('#colley-output').value += team.name + ': ' + team.ratingEarned.toFixed(6) + ' ' + team.ratingConceded.toFixed(6) + ' ' + team.averagePointsPerMatch.toFixed(6) + '\n';
+            document.querySelector('#colley-output').value += team.name + ': ';
+            document.querySelector('#colley-output').value += team.ratingEarned.toFixed(6) + ' ';
+            document.querySelector('#colley-output').value += team.ratingConceded.toFixed(6) + ' ';
+            document.querySelector('#colley-output').value += team.opponentsRatingEarned.toFixed(6) + ' ';
+            document.querySelector('#colley-output').value += team.opponentsRatingConceded.toFixed(6) + ' ';
+            document.querySelector('#colley-output').value += team.averagePointsPerMatch.toFixed(6) + '\n';
          });
       };
 
+      (function () {
+         var availableYears;
+
+         document.querySelector('#clear-matches').addEventListener('click', function () {
+            document.querySelector('#match-results-input').value = '';
+         }, false);
+
+         Array.from(document.querySelectorAll('#add-matches button')).forEach(function (buttonElement, whichButton) {
+            buttonElement.addEventListener('click', function () {
+               var request;
+
+               request = new XMLHttpRequest();
+               request.addEventListener('readystatechange', function () {
+                  if (request.readyState === 4 && request.status === 200) {
+                     document.querySelector('#match-results-input').value = request.responseText + '\n' + document.querySelector('#match-results-input').value;
+                  }
+               }, false);
+
+               request.open('get', buttonElement.textContent + '.txt');
+               request.send();
+            }, false);
+         });
+      }());
+
       document.querySelector('#get-colley-rankings').addEventListener('click', function () {
-         var moreTimes, pointValues;
+         var moreTimes, oldColleyLeague, pointValues;
 
          pointValues = (function () {
             var pointValuesSelect, resultPoints;
@@ -180,11 +228,21 @@ document.addEventListener('DOMContentLoaded', function () {
             }
          });
 
-         for (moreTimes = 100; moreTimes > 0; moreTimes -= 1) {
+         colleyLeague = colley.iterateRatings(colleyLeague);
+         moreTimes = 0;
+         (function keepIterating() {
+            moreTimes += 1;
+            oldColleyLeague = colleyLeague;
             colleyLeague = colley.iterateRatings(colleyLeague);
-         }
-
-         updateColleyLeague();
+            updateColleyLeague();
+            if (colley.totalRatingsDifference(oldColleyLeague, colleyLeague) > 1e-15 && moreTimes < 10000) {
+               document.querySelector('#colley-output').value += moreTimes + ' iterations so far . . .\n';
+               setTimeout(keepIterating, 0);
+            } else {
+               document.querySelector('#colley-output').value += 'Done!  ' + moreTimes + ' iterations\n';
+            }
+            document.querySelector('#colley-output').value += colley.totalRatingsDifference(oldColleyLeague, colleyLeague) + ' total ratings difference';
+         }());
       }, false);
 
       colleyLeague = colley.createLeague();
