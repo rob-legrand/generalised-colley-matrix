@@ -66,9 +66,7 @@ document.addEventListener('DOMContentLoaded', function () {
       self = {
          addMatchResult: function (league, teamName1, points1, teamName2, points2) {
             var teamNames, whichTeam1, whichTeam2;
-            points1 = Number(points1);
-            points2 = Number(points2);
-            if (!isFinite(points1) || !isFinite(points2)) {
+            if (!Number.isFinite(points1) || !Number.isFinite(points2)) {
                return;
             }
             league = util.addTeam(util.addTeam(league, teamName1), teamName2);
@@ -108,12 +106,12 @@ document.addEventListener('DOMContentLoaded', function () {
          },
          getOpponentsTotalRatingsConceded: function (league, whichTeam) {
             return league[whichTeam].numMatchesVersus.reduce(function (effectivePointsSoFar, timesPlayed, whichOpponent) {
-               return effectivePointsSoFar + timesPlayed * (typeof league[whichOpponent].ratingConceded === 'number' ? league[whichOpponent].ratingConceded : self.getAveragePointsPerMatch(league));
+               return effectivePointsSoFar + timesPlayed * (Number.isFinite(league[whichOpponent].ratingConceded) ? league[whichOpponent].ratingConceded : self.getAveragePointsPerMatch(league));
             }, 0);
          },
          getOpponentsTotalRatingsEarned: function (league, whichTeam) {
             return league[whichTeam].numMatchesVersus.reduce(function (effectivePointsSoFar, timesPlayed, whichOpponent) {
-               return effectivePointsSoFar + timesPlayed * (typeof league[whichOpponent].ratingEarned === 'number' ? league[whichOpponent].ratingEarned : self.getAveragePointsPerMatch(league));
+               return effectivePointsSoFar + timesPlayed * (Number.isFinite(league[whichOpponent].ratingEarned) ? league[whichOpponent].ratingEarned : self.getAveragePointsPerMatch(league));
             }, 0);
          },
          iterateRatings: function (oldLeague) {
@@ -236,7 +234,7 @@ document.addEventListener('DOMContentLoaded', function () {
          updateColleyLeague();
       }, false);
 
-      document.querySelector('#get-colley-rankings').addEventListener('click', function () {
+      document.querySelector('#get-colley-ratings').addEventListener('click', function () {
          var moreTimes, oldColleyLeague;
 
          colleyLeague = getLeagueInput();
