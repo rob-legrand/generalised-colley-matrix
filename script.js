@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
    const colley = (function () {
 
-      const util = {
+      const util = Object.freeze({
          addTeam: function (league, teamName) {
             league = util.createUnfrozenLeague(league);
             if (league.map((team) => team.name).includes(teamName)) {
@@ -52,9 +52,9 @@ document.addEventListener('DOMContentLoaded', function () {
                : oldThing
             );
          }
-      };
+      });
 
-      const self = {
+      const self = Object.freeze({
          addMatchResult: function (league, teamName1, points1, teamName2, points2) {
             if (!Number.isFinite(points1) || !Number.isFinite(points2)) {
                return;
@@ -134,8 +134,9 @@ document.addEventListener('DOMContentLoaded', function () {
             (diffSoFar, team, whichTeam) => diffSoFar + Math.abs(team.ratingEarned - league2[whichTeam].ratingEarned),
             0
          )
-      };
-      return Object.freeze(self);
+      });
+
+      return self;
    }());
 
    (function () {
@@ -154,9 +155,8 @@ document.addEventListener('DOMContentLoaded', function () {
             opponentsRatingConceded: colley.getOpponentsTotalRatingsConceded(colleyLeague, whichTeam) / colley.getNumMatches(team),
             averagePointsPerMatch: colley.getAveragePointsPerMatch(team)
          })).sort((team1, team2) => (
-            team1.ratingEarned !== team2.ratingEarned
-            ? team2.ratingEarned - team1.ratingEarned
-            : team1.name.localeCompare(team2.name)
+            team2.ratingEarned - team1.ratingEarned
+            || team1.name.localeCompare(team2.name)
          ));
          const colleyOutputElement = document.querySelector('#colley-output');
          colleyOutputElement.value = '       RE       RC       ORE      ORC      P/M      NRE\n';
