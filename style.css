@@ -10,7 +10,7 @@ html {
 
 body {
    align-items: center;
-   background-color: rgb(255, 250, 245);
+   background-color: rgb(255, 245, 225);
    display: flex;
    flex-direction: column;
    font-family: Georgia, serif;

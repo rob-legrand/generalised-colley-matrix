@@ -1,5 +1,7 @@
 /*jslint browser */
 
+import {counties} from '../cc/counties.js';
+
 document.addEventListener('DOMContentLoaded', function () {
    'use strict';
 
@@ -30,7 +32,7 @@ document.addEventListener('DOMContentLoaded', function () {
             Array.isArray(oldLeague)
             ? oldLeague.map((oldTeam) => ({
                name: oldTeam.name,
-               numMatchesVersus: Array.from(oldTeam.numMatchesVersus),
+               numMatchesVersus: [...oldTeam.numMatchesVersus],
                actualPointsEarned: oldTeam.actualPointsEarned,
                actualPointsConceded: oldTeam.actualPointsConceded,
                effectivePointsEarned: oldTeam.effectivePointsEarned,
@@ -110,7 +112,7 @@ document.addEventListener('DOMContentLoaded', function () {
                   && options.strengthOfScheduleFactor > 0
                )
                ? options.strengthOfScheduleFactor
-               : 1 // Colley's default 1; should be nonnegative and maybe no more than 1
+               : 1 // Colley's default was 1; should be nonnegative and maybe no more than 1
             );
             const laplaceEquivalentMatches = (
                (
@@ -119,14 +121,26 @@ document.addEventListener('DOMContentLoaded', function () {
                   && options.laplaceEquivalentMatches > 0
                )
                ? options.laplaceEquivalentMatches
-               : 1 // Colley's default 2; should be positive
+               : 1 // Colley's default was 2; should be positive
             );
             oldLeague.forEach(function (team, whichTeam) {
                const numMatchesPlayed = self.getNumMatches(team);
-               newLeague[whichTeam].effectivePointsEarned = team.actualPointsEarned + strengthOfScheduleFactor * (numMatchesPlayed * averageActualPointsPerMatch - self.getOpponentsTotalRatingsConceded(oldLeague, whichTeam));
-               newLeague[whichTeam].ratingEarned = (laplaceEquivalentMatches * averageActualPointsPerMatch + newLeague[whichTeam].effectivePointsEarned) / (laplaceEquivalentMatches + numMatchesPlayed);
-               newLeague[whichTeam].effectivePointsConceded = team.actualPointsConceded + strengthOfScheduleFactor * (numMatchesPlayed * averageActualPointsPerMatch - self.getOpponentsTotalRatingsEarned(oldLeague, whichTeam));
-               newLeague[whichTeam].ratingConceded = (laplaceEquivalentMatches * averageActualPointsPerMatch + newLeague[whichTeam].effectivePointsConceded) / (laplaceEquivalentMatches + numMatchesPlayed);
+               newLeague[whichTeam].effectivePointsEarned = team.actualPointsEarned + strengthOfScheduleFactor * (
+                  numMatchesPlayed * averageActualPointsPerMatch - self.getOpponentsTotalRatingsConceded(oldLeague, whichTeam)
+               );
+               newLeague[whichTeam].ratingEarned = (
+                  laplaceEquivalentMatches * averageActualPointsPerMatch + newLeague[whichTeam].effectivePointsEarned
+               ) / (
+                  laplaceEquivalentMatches + numMatchesPlayed
+               );
+               newLeague[whichTeam].effectivePointsConceded = team.actualPointsConceded + strengthOfScheduleFactor * (
+                  numMatchesPlayed * averageActualPointsPerMatch - self.getOpponentsTotalRatingsEarned(oldLeague, whichTeam)
+               );
+               newLeague[whichTeam].ratingConceded = (
+                  laplaceEquivalentMatches * averageActualPointsPerMatch + newLeague[whichTeam].effectivePointsConceded
+               ) / (
+                  laplaceEquivalentMatches + numMatchesPlayed
+               );
             });
             return util.deepFreeze(newLeague);
          },
@@ -142,14 +156,16 @@ document.addEventListener('DOMContentLoaded', function () {
    (function () {
       let colleyLeague;
 
+      const colleyOptions = {
+         strengthOfScheduleFactor: 1,
+         laplaceEquivalentMatches: 1
+      };
+
       const updateColleyLeague = function () {
          const standings = colleyLeague.map((team, whichTeam) => ({
             name: team.name,
             ratingEarned: team.ratingEarned,
-            nextRatingEarned: colley.iterateRatings(colleyLeague, {
-               strengthOfScheduleFactor: 1,
-               laplaceEquivalentMatches: 1
-            })[whichTeam].ratingEarned,
+            nextRatingEarned: colley.iterateRatings(colleyLeague, colleyOptions)[whichTeam].ratingEarned,
             ratingConceded: team.ratingConceded,
             opponentsRatingEarned: colley.getOpponentsTotalRatingsEarned(colleyLeague, whichTeam) / colley.getNumMatches(team),
             opponentsRatingConceded: colley.getOpponentsTotalRatingsConceded(colleyLeague, whichTeam) / colley.getNumMatches(team),
@@ -171,13 +187,46 @@ document.addEventListener('DOMContentLoaded', function () {
                + team.nextRatingEarned.toFixed(6) + '\n'
             );
          });
+         const bestRatingEarned = Math.max(...standings.map((team) => team.ratingEarned));
+         const worstRatingEarned = Math.min(...standings.map((team) => team.ratingEarned));
+         const countiesBars = standings.map((team) => ({
+            countyName: team.name,
+            barLength: (
+               bestRatingEarned > worstRatingEarned
+               ? (team.ratingEarned - worstRatingEarned) / (bestRatingEarned - worstRatingEarned)
+               : 1
+            )
+         })).sort((team1, team2) => (
+            team2.barLength - team1.barLength
+            || team1.countyName.localeCompare(team2.countyName)
+         ));
+         const barsElement = document.querySelector('#bars');
+         [...barsElement.childNodes].forEach(function (childNode) {
+            childNode.remove();
+         });
+         const countiesInfo = counties.createInfo();
+         countiesBars.forEach(function (countyBar) {
+            if (countiesInfo.some((c) => c.chapmanCode === countyBar.countyName)) {
+               barsElement.appendChild(counties.createCanvas({
+                  county: countiesInfo.find((c) => c.chapmanCode === countyBar.countyName),
+                  height: Math.round(40 + countyBar.barLength * 200),
+                  isHorizontal: true,
+                  isVertical: true,
+                  width: 40
+               }));
+            } else {
+               const blank = document.createElement('span');
+               blank.textContent = '[' + countyBar.countyName.toUpperCase() + ']';
+               barsElement.appendChild(blank);
+            }
+         });
       };
 
       document.querySelector('#clear-matches').addEventListener('click', function () {
          document.querySelector('#match-results-input').value = '';
       });
 
-      Array.from(document.querySelectorAll('#add-matches button')).forEach(function (buttonElement) {
+      [...document.querySelectorAll('#add-matches button')].forEach(function (buttonElement) {
          buttonElement.addEventListener('click', function () {
             const request = new XMLHttpRequest();
             request.addEventListener('readystatechange', function () {
@@ -223,10 +272,7 @@ document.addEventListener('DOMContentLoaded', function () {
          if (colleyLeague.length <= 0) {
             colleyLeague = getLeagueInput();
          }
-         colleyLeague = colley.iterateRatings(colleyLeague, {
-            strengthOfScheduleFactor: 1,
-            laplaceEquivalentMatches: 1
-         });
+         colleyLeague = colley.iterateRatings(colleyLeague, colleyOptions);
          updateColleyLeague();
       });
 
@@ -235,10 +281,7 @@ document.addEventListener('DOMContentLoaded', function () {
          (function keepIterating(numIterationsDone) {
             numIterationsDone += 1;
             const oldColleyLeague = colleyLeague;
-            colleyLeague = colley.iterateRatings(colleyLeague, {
-               strengthOfScheduleFactor: 1,
-               laplaceEquivalentMatches: 1
-            });
+            colleyLeague = colley.iterateRatings(colleyLeague, colleyOptions);
             updateColleyLeague();
             if (colley.totalRatingsDifference(oldColleyLeague, colleyLeague) > 1e-15 && numIterationsDone < 10000) {
                document.querySelector('#colley-output').value += numIterationsDone + ' iterations so far . . .\n';

@@ -13,6 +13,10 @@
 <button id="clear-matches" type="button">Clear all matches</button>
 Add county matches:
 <div id="add-matches">
+   <button type="button">1882</button>
+   <button type="button">1883</button>
+   <button type="button">1884</button>
+   <button type="button">1885</button>
    <button type="button">1886</button>
    <button type="button">1887</button>
    <button type="button">1888</button>
@@ -22,6 +26,7 @@ Add county matches:
    <button type="button">1892</button>
    <button type="button">1893</button>
    <button type="button">1894</button>
+   <button type="button">1895</button>
 </div>
 
 <textarea cols="80" id="match-results-input" rows="30"></textarea>
@@ -35,7 +40,9 @@ Add county matches:
       <option value="1,0.5,1,0">W 1, T 0.5, D 1, L 0</option>
       <option value="1,0.5,0.5,0">W 1, T 0.5, D 0.5, L 0</option>
       <option value="1,0.5,0,0">W 1, T 0.5, D 0, L 0</option>
+      <option value="1,1,-3,1">W 1, T 1, D -3, L 1</option>
       <option value="1,1,0,1">W 1, T 1, D 0, L 1</option>
+      <option value="1,1,1,1">W 1, T 1, D 1, L 1</option>
    </select></label>&nbsp;
    <button id="iterate-colley-once" type="button">Iterate Colley once</button>
    <button id="get-colley-ratings" type="button">Get Colley ratings</button>
@@ -43,6 +50,8 @@ Add county matches:
 
 <textarea cols="80" id="colley-output" rows="30"></textarea>
 
-<script src="script.js"></script>
+<div id="bars"></div>
+
+<script src="script.js" type="module"></script>
 
 </body></html>
