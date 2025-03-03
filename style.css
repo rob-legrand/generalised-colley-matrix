@@ -49,7 +49,7 @@ h1 {
 }
 
 .county-name {
-   transform: rotate(-45deg);
+   margin: 9px 0px;
+   transform: rotate(180deg);
    writing-mode: vertical-rl;
-   margin: 5px;
 }

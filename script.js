@@ -5,6 +5,8 @@ import {counties} from '../cc/counties.js';
 document.addEventListener('DOMContentLoaded', function () {
    'use strict';
 
+   const countiesInfo = counties.createInfo();
+
    const colley = (function () {
 
       const util = Object.freeze({
@@ -13,13 +15,13 @@ document.addEventListener('DOMContentLoaded', function () {
             if (league.map((team) => team.name).includes(teamName)) {
                return league;
             }
+            const county = countiesInfo.find((c) => c.countyCode === teamName);
             league.push({
                name: teamName,
+               classLevel: county?.classLevel,
                numMatchesVersus: [],
                actualPointsEarned: 0,
-               actualPointsConceded: 0,
-               effectivePointsEarned: 0,
-               effectivePointsConceded: 0
+               actualPointsConceded: 0
             });
             league.forEach(function (team) {
                while (team.numMatchesVersus.length < league.length) {
@@ -32,6 +34,7 @@ document.addEventListener('DOMContentLoaded', function () {
             Array.isArray(oldLeague)
             ? oldLeague.map((oldTeam) => ({
                name: oldTeam.name,
+               classLevel: oldTeam.classLevel,
                numMatchesVersus: [...oldTeam.numMatchesVersus],
                actualPointsEarned: oldTeam.actualPointsEarned,
                actualPointsConceded: oldTeam.actualPointsConceded,
@@ -78,9 +81,16 @@ document.addEventListener('DOMContentLoaded', function () {
          createLeague: (oldLeague) => util.deepFreeze(util.createUnfrozenLeague(oldLeague)),
          getAveragePointsPerMatch: (leagueOrTeam) => (
             Array.isArray(leagueOrTeam)
-            ? leagueOrTeam.reduce((numPointsSoFar, team) => numPointsSoFar + team.actualPointsEarned, 0) / self.getNumMatches(leagueOrTeam)
+            ? leagueOrTeam.reduce(
+               (numPointsSoFar, team) => numPointsSoFar + team.actualPointsEarned,
+               0
+            ) / self.getNumMatches(leagueOrTeam)
             : leagueOrTeam.actualPointsEarned / self.getNumMatches(leagueOrTeam)
          ),
+         getAverageRatingEarned: (league) => league.reduce(
+            (totalRatingEarnedSoFar, team) => totalRatingEarnedSoFar + team.ratingEarned,
+            0
+         ) / league.length,
          getNumMatches: (leagueOrTeam) => (
             Array.isArray(leagueOrTeam)
             ? leagueOrTeam.reduce((numMatchesSoFar, team) => numMatchesSoFar + self.getNumMatches(team), 0)
@@ -107,8 +117,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const newLeague = util.createUnfrozenLeague(oldLeague);
             const strengthOfScheduleFactor = (
                (
-                  typeof options === 'object'
-                  && Number.isFinite(options.strengthOfScheduleFactor)
+                  Number.isFinite(options?.strengthOfScheduleFactor)
                   && options.strengthOfScheduleFactor > 0
                )
                ? options.strengthOfScheduleFactor
@@ -116,8 +125,7 @@ document.addEventListener('DOMContentLoaded', function () {
             );
             const laplaceEquivalentMatches = (
                (
-                  typeof options === 'object'
-                  && Number.isFinite(options.laplaceEquivalentMatches)
+                  Number.isFinite(options?.laplaceEquivalentMatches)
                   && options.laplaceEquivalentMatches > 0
                )
                ? options.laplaceEquivalentMatches
@@ -144,6 +152,17 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             return util.deepFreeze(newLeague);
          },
+         normaliseRatings: function (oldLeague) {
+            const newLeague = util.createUnfrozenLeague(oldLeague);
+            newLeague.forEach(function (team) {
+               team.ratingEarned = team?.ratingEarned ?? 0;
+            });
+            const averageRatingDeficit = self.getAveragePointsPerMatch(oldLeague) - self.getAverageRatingEarned(oldLeague);
+            newLeague.forEach(function (team) {
+               team.ratingEarned += averageRatingDeficit;
+            });
+            return util.deepFreeze(newLeague);
+         },
          totalRatingsDifference: (league1, league2) => league1.reduce(
             (diffSoFar, team, whichTeam) => diffSoFar + Math.abs(team.ratingEarned - league2[whichTeam].ratingEarned),
             0
@@ -160,58 +179,76 @@ document.addEventListener('DOMContentLoaded', function () {
          strengthOfScheduleFactor: 1,
          laplaceEquivalentMatches: 1
       };
+      const matchResultsInputElement = document.querySelector('#match-results-input');
+      const colleyOutputElement = document.querySelector('#colley-output');
+      const barsElement = document.querySelector('#bars');
 
       const updateColleyLeague = function () {
-         const standings = colleyLeague.map((team, whichTeam) => ({
-            name: team.name,
-            ratingEarned: team.ratingEarned,
-            nextRatingEarned: colley.iterateRatings(colleyLeague, colleyOptions)[whichTeam].ratingEarned,
-            ratingConceded: team.ratingConceded,
-            opponentsRatingEarned: colley.getOpponentsTotalRatingsEarned(colleyLeague, whichTeam) / colley.getNumMatches(team),
-            opponentsRatingConceded: colley.getOpponentsTotalRatingsConceded(colleyLeague, whichTeam) / colley.getNumMatches(team),
-            averagePointsPerMatch: colley.getAveragePointsPerMatch(team)
-         })).sort((team1, team2) => (
-            team2.ratingEarned - team1.ratingEarned
-            || team1.name.localeCompare(team2.name)
-         ));
-         const colleyOutputElement = document.querySelector('#colley-output');
-         colleyOutputElement.value = '       RE       RC       ORE      ORC      P/M      NRE\n';
+         const maxMatchesPlayed = Math.max(...colleyLeague.map((team) => colley.getNumMatches(team)));
+         const minRatingEarned = Math.min(...colleyLeague.map((team) => team.ratingEarned));
+         const standings = colleyLeague.map(
+            (team, whichTeam) => ({
+               name: team.name,
+               adjustedRating: (team.ratingEarned - minRatingEarned) * (1 - (1 - colley.getNumMatches(team) / maxMatchesPlayed) ** 36) + minRatingEarned,
+               ratingEarned: team.ratingEarned,
+               nextRatingEarned: colley.iterateRatings(colleyLeague, colleyOptions)[whichTeam].ratingEarned,
+               ratingConceded: team.ratingConceded,
+               opponentsRatingEarned: colley.getOpponentsTotalRatingsEarned(colleyLeague, whichTeam) / colley.getNumMatches(team),
+               opponentsRatingConceded: colley.getOpponentsTotalRatingsConceded(colleyLeague, whichTeam) / colley.getNumMatches(team),
+               averagePointsPerMatch: colley.getAveragePointsPerMatch(team),
+               numMatches: colley.getNumMatches(team)
+            })
+         ).sort(
+            (team1, team2) => team2.adjustedRating - team1.adjustedRating || team1.name.localeCompare(team2.name)
+         );
+         colleyOutputElement.value = '       AR       RE       RC       ORE      ORC      P/M      NRE\n';
          standings.forEach(function (team) {
             colleyOutputElement.value += (
                team.name + ': '
+               + team.adjustedRating.toFixed(6) + ' '
                + team.ratingEarned.toFixed(6) + ' '
                + team.ratingConceded.toFixed(6) + ' '
                + team.opponentsRatingEarned.toFixed(6) + ' '
                + team.opponentsRatingConceded.toFixed(6) + ' '
                + team.averagePointsPerMatch.toFixed(6) + ' '
-               + team.nextRatingEarned.toFixed(6) + '\n'
+               + team.nextRatingEarned.toFixed(6) + ' '
+               + team.numMatches + '\n'
             );
          });
-         const bestRatingEarned = Math.max(...standings.map((team) => team.ratingEarned));
-         const worstRatingEarned = Math.min(...standings.map((team) => team.ratingEarned));
-         const countiesBars = standings.map((team) => ({
-            countyCode: team.name,
-            barLength: (
-               bestRatingEarned > worstRatingEarned
-               ? (team.ratingEarned - worstRatingEarned) / (bestRatingEarned - worstRatingEarned)
-               : 1
-            )
-         })).sort((team1, team2) => (
-            team2.barLength - team1.barLength
-            || team1.countyCode.localeCompare(team2.countyCode)
-         ));
-         const barsElement = document.querySelector('#bars');
+         colleyOutputElement.value += 'average P/M: ' + colley.getAveragePointsPerMatch(colleyLeague) + '\n';
+         colleyOutputElement.value += 'average RE: ' + standings.reduce(
+            (sumSoFar, team) => sumSoFar + team.ratingEarned,
+            0
+         ) / standings.length + '\n';
+         const bestRating = Math.max(...standings.map((team) => team.adjustedRating));
+         const worstRating = Math.min(...standings.map((team) => team.adjustedRating));
+         const countiesBars = standings.map(
+            (team) => ({
+               countyCode: team.name,
+               barLength: (
+                  bestRating > worstRating
+                  ? (team.adjustedRating - worstRating) / (bestRating - worstRating)
+                  : 1
+               )
+            })
+         ).sort(
+            (team1, team2) => team2.barLength - team1.barLength || team1.countyCode.localeCompare(team2.countyCode)
+         );
          [...barsElement.childNodes].forEach(function (childNode) {
             childNode.remove();
          });
-         const countiesInfo = counties.createInfo();
-         countiesBars.forEach(function (countyBar) {
+         countiesBars.forEach(function (countyBar, whichPlace) {
             const county = countiesInfo.find((c) => c.countyCode === countyBar.countyCode);
             if (county !== undefined) {
                const newCountyDiv = document.createElement('div');
+               newCountyDiv.title = (whichPlace + 1) + '. ' + county.countyName;
                newCountyDiv.classList.add('county-bar');
+               const newCountyNameDiv = document.createElement('div');
+               newCountyNameDiv.classList.add('county-name');
+               newCountyNameDiv.textContent = (whichPlace + 1) + '. ' + county.countyName;
+               newCountyDiv.appendChild(newCountyNameDiv);
                newCountyDiv.appendChild(counties.createCanvas({
-                  county: countiesInfo.find((c) => c.countyCode === countyBar.countyCode),
+                  county: county,
                   height: Math.round(40 + countyBar.barLength * 200),
                   isHorizontal: true,
                   isVertical: true,
@@ -231,28 +268,69 @@ document.addEventListener('DOMContentLoaded', function () {
          });
       };
 
+      const getCountyMatches = function (year) {
+         fetch(
+            year + '.txt'
+         ).then(
+            (response) => response.text()
+         ).then(
+            function (data) {
+               matchResultsInputElement.value = data + '\n' + matchResultsInputElement.value;
+            }
+         );
+      };
+
       document.querySelector('#clear-matches').addEventListener('click', function () {
-         document.querySelector('#match-results-input').value = '';
+         matchResultsInputElement.value = '';
       });
 
       [...document.querySelectorAll('#add-matches button')].forEach(function (buttonElement) {
          buttonElement.addEventListener('click', function () {
-            const request = new XMLHttpRequest();
-            request.addEventListener('readystatechange', function () {
-               if (request.readyState === 4 && request.status === 200) {
-                  document.querySelector('#match-results-input').value = request.responseText + '\n' + document.querySelector('#match-results-input').value;
-               }
-            });
+            getCountyMatches(buttonElement.textContent);
+         });
+      });
 
-            request.open('get', buttonElement.textContent + '.txt');
-            request.send();
+      document.querySelector('#clear-matches').addEventListener('click', function () {
+         matchResultsInputElement.value = '';
+      });
+
+      matchResultsInputElement.addEventListener('dblclick', function () {
+         const seasons = [
+            {year: 1881, weight: 1},
+            {year: 1882, weight: 1},
+            {year: 1883, weight: 2},
+            {year: 1884, weight: 3},
+            {year: 1885, weight: 5},
+            {year: 1886, weight: 8},
+            {year: 1887, weight: 13},
+            {year: 1888, weight: 21},
+            {year: 1889, weight: 34},
+            {year: 1890, weight: 55},
+            {year: 1891, weight: 13},
+            {year: 1892, weight: 8},
+            {year: 1893, weight: 5},
+            {year: 1894, weight: 3},
+            {year: 1895, weight: 2},
+            {year: 1896, weight: 1}
+         ];
+         seasons.forEach(function (season) {
+            (function getTheRest(howManyLeft) {
+               if (howManyLeft > 0) {
+                  getCountyMatches(season.year);
+                  setTimeout(function () {
+                     getTheRest(howManyLeft - 1);
+                  }, 0);
+               }
+            }(season.weight));
          });
       });
 
       const getLeagueInput = function () {
          const pointValues = (function () {
             const pointValuesSelect = document.querySelector('#point-values');
-            const resultPoints = pointValuesSelect.options[pointValuesSelect.selectedIndex].value.split(',').map((resultPoint) => Number(resultPoint));
+            const resultPoints = pointValuesSelect.options[pointValuesSelect.selectedIndex].value.split(',').map(
+               (resultPoint) => Number(resultPoint)
+            );
             return {
                w: [resultPoints[0], resultPoints[3]],
                td: [resultPoints[1], resultPoints[2]],
@@ -265,12 +343,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
          let newColleyLeague = colley.createLeague();
 
-         document.querySelector('#match-results-input').value.split('\n').forEach(function (inputLine) {
-            inputLine = inputLine.replace(/\s+/g, ' ').trim().split(' ');
-            if (inputLine.length >= 3) {
-               inputLine[1] = inputLine[1].toLowerCase();
-               if (pointValues.hasOwnProperty(inputLine[1])) {
-                  newColleyLeague = colley.addMatchResult(newColleyLeague, inputLine[0], pointValues[inputLine[1]][0], inputLine[2], pointValues[inputLine[1]][1]);
+         matchResultsInputElement.value.split('\n').forEach(function (inputLine) {
+            const inputTokens = inputLine.replace(/\s+/g, ' ').trim().split(' ');
+            if (inputTokens.length >= 3) {
+               const matchResult = inputTokens[1].toLowerCase();
+               if (pointValues.hasOwnProperty(matchResult)) {
+                  newColleyLeague = colley.addMatchResult(
+                     newColleyLeague,
+                     inputTokens[0],
+                     pointValues[matchResult][0],
+                     inputTokens[2],
+                     pointValues[matchResult][1]
+                  );
+               } else {
+                  matchResultsInputElement.value = 'invalid match result: ' + inputTokens[1] + '\n' + matchResultsInputElement.value;
                }
             }
          });
@@ -278,10 +364,14 @@ document.addEventListener('DOMContentLoaded', function () {
       };
 
       document.querySelector('#iterate-colley-once').addEventListener('click', function () {
-         if (colleyLeague.length <= 0) {
-            colleyLeague = getLeagueInput();
-         }
-         colleyLeague = colley.iterateRatings(colleyLeague, colleyOptions);
+         colleyLeague = colley.iterateRatings(
+            (
+               colleyLeague?.length > 0
+               ? colleyLeague
+               : getLeagueInput()
+            ),
+            colleyOptions
+         );
          updateColleyLeague();
       });
 
@@ -293,14 +383,14 @@ document.addEventListener('DOMContentLoaded', function () {
             colleyLeague = colley.iterateRatings(colleyLeague, colleyOptions);
             updateColleyLeague();
             if (colley.totalRatingsDifference(oldColleyLeague, colleyLeague) > 1e-15 && numIterationsDone < 10000) {
-               document.querySelector('#colley-output').value += numIterationsDone + ' iterations so far . . .\n';
+               colleyOutputElement.value += numIterationsDone + ' iterations so far . . .\n';
                setTimeout(function () {
                   keepIterating(numIterationsDone);
                }, 0);
             } else {
-               document.querySelector('#colley-output').value += 'Done!  ' + numIterationsDone + ' iterations\n';
+               colleyOutputElement.value += 'Done!  ' + numIterationsDone + ' iterations\n';
             }
-            document.querySelector('#colley-output').value += colley.totalRatingsDifference(oldColleyLeague, colleyLeague) + ' total ratings difference';
+            colleyOutputElement.value += colley.totalRatingsDifference(oldColleyLeague, colleyLeague) + ' total ratings difference';
          }(0));
       });
 
