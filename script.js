@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', function () {
          const bestRatingEarned = Math.max(...standings.map((team) => team.ratingEarned));
          const worstRatingEarned = Math.min(...standings.map((team) => team.ratingEarned));
          const countiesBars = standings.map((team) => ({
-            countyName: team.name,
+            countyCode: team.name,
             barLength: (
                bestRatingEarned > worstRatingEarned
                ? (team.ratingEarned - worstRatingEarned) / (bestRatingEarned - worstRatingEarned)
@@ -198,7 +198,7 @@ document.addEventListener('DOMContentLoaded', function () {
             )
          })).sort((team1, team2) => (
             team2.barLength - team1.barLength
-            || team1.countyName.localeCompare(team2.countyName)
+            || team1.countyCode.localeCompare(team2.countyCode)
          ));
          const barsElement = document.querySelector('#bars');
          [...barsElement.childNodes].forEach(function (childNode) {
@@ -206,18 +206,27 @@ document.addEventListener('DOMContentLoaded', function () {
          });
          const countiesInfo = counties.createInfo();
          countiesBars.forEach(function (countyBar) {
-            if (countiesInfo.some((c) => c.chapmanCode === countyBar.countyName)) {
-               barsElement.appendChild(counties.createCanvas({
-                  county: countiesInfo.find((c) => c.chapmanCode === countyBar.countyName),
+            const county = countiesInfo.find((c) => c.countyCode === countyBar.countyCode);
+            if (county !== undefined) {
+               const newCountyDiv = document.createElement('div');
+               newCountyDiv.classList.add('county-bar');
+               newCountyDiv.appendChild(counties.createCanvas({
+                  county: countiesInfo.find((c) => c.countyCode === countyBar.countyCode),
                   height: Math.round(40 + countyBar.barLength * 200),
                   isHorizontal: true,
                   isVertical: true,
                   width: 40
                }));
+               const newCodeDiv = counties.createCountyElement(county);
+               newCodeDiv.textContent = county.countyCode.toUpperCase();
+               newCodeDiv.classList.add('county-code');
+               newCodeDiv.classList.add('county-colour-name');
+               newCountyDiv.appendChild(newCodeDiv);
+               barsElement.appendChild(newCountyDiv);
             } else {
-               const blank = document.createElement('span');
-               blank.textContent = '[' + countyBar.countyName.toUpperCase() + ']';
-               barsElement.appendChild(blank);
+               const blankDiv = document.createElement('div');
+               blankDiv.textContent = '[' + countyBar.countyCode.toUpperCase() + ']';
+               barsElement.appendChild(blankDiv);
             }
          });
       };

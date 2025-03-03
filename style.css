@@ -21,3 +21,35 @@ h1 {
    color: rgb(34, 68, 102);
    text-align: center;
 }
+
+.county-bar {
+   align-items: center;
+   display: flex;
+   flex-direction: column;
+   justify-content: flex-end;
+}
+
+.county-bars {
+   align-items: flex-end;
+   display: flex;
+   flex-direction: row;
+   flex-wrap: wrap;
+}
+
+.county-code {
+   font-family: Consolas, Inconsolata, "Andale Mono", AndaleMono, monospace;
+}
+
+.county-colour-name {
+   border-style: solid;
+   border-width: 2px;
+   font-size: 100%;
+   margin: 2px;
+   padding: 2px;
+}
+
+.county-name {
+   transform: rotate(-45deg);
+   writing-mode: vertical-rl;
+   margin: 5px;
+}
