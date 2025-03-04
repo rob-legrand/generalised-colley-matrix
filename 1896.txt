@@ -1,9 +1,9 @@
-ber D buc
-ber D hrt
-ber D oxf
-ber L wil
+brk D buc
+brk D hrt
+brk D oxf
+brk L wil
 buc D hrt
-buc W ber
+buc W brk
 buc W nth
 buc W oxf
 cam D nfk
@@ -46,7 +46,7 @@ ham W ess
 ham W lei
 ham W sus
 hef L gla
-hrt D ber
+hrt D brk
 hrt L wor
 hrt W buc
 hrt W nfk
@@ -107,7 +107,7 @@ nth D wor
 nth L nbl
 nth W dur
 oxf D wil
-oxf L ber
+oxf L brk
 oxf L buc
 som D ham
 som D ken
@@ -149,7 +149,7 @@ war D yrk
 war L lan
 war L sur
 war W ken
-wil D ber
+wil D brk
 wil L oxf
 wil W mnm
 wor L nth

@@ -2,8 +2,8 @@ bed D hrt
 bed L oxf
 bed L wil
 bed W buc
-ber W hrt
 bre L hef
+brk W hrt
 buc D nth
 buc W bed
 buc W oxf
@@ -59,7 +59,7 @@ hef D gla
 hef D sal
 hef W bre
 hef W mnm
-hrt D ber
+hrt D brk
 hrt L bed
 hrt L wor
 hrt W nfk
