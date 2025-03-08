@@ -5,6 +5,32 @@ import {counties} from '../cc/counties.js';
 document.addEventListener('DOMContentLoaded', function () {
    'use strict';
 
+   const firstCountySeason = 1878;
+   const lastCountySeason = 1899;
+   const countySeasons = Array.from(
+      {length: lastCountySeason - firstCountySeason + 1},
+      (ignore, whichSeason) => whichSeason + firstCountySeason
+   );
+
+   countySeasons.forEach(
+      function (countySeason) {
+         const newButton = document.createElement('button');
+         newButton.setAttribute('type', 'button');
+         newButton.textContent = countySeason;
+         document.querySelector('#add-matches').append(newButton);
+         const newFromOption = document.createElement('option');
+         newFromOption.setAttribute('value', countySeason.toString());
+         newFromOption.textContent = countySeason;
+         document.querySelector('#from-season').append(newFromOption);
+         const newToOption = document.createElement('option');
+         newToOption.setAttribute('value', countySeason.toString());
+         newToOption.textContent = countySeason;
+         document.querySelector('#to-season').append(newToOption);
+      }
+   );
+   document.querySelector('#from-season :first-child').setAttribute('selected', 'selected');
+   document.querySelector('#to-season :last-child').setAttribute('selected', 'selected');
+
    const countiesInfo = counties.createInfo();
 
    const colley = (function () {
@@ -45,18 +71,21 @@ document.addEventListener('DOMContentLoaded', function () {
             }))
             : []
          ),
-         deepFreeze: function deepFreeze(oldThing) {
-            return (
-               Array.isArray(oldThing)
-               ? Object.freeze(oldThing.map((currentValue) => deepFreeze(currentValue)))
-               : typeof oldThing === 'object'
-               ? Object.freeze(Object.keys(oldThing).reduce(function (newObject, prop) {
-                  newObject[prop] = deepFreeze(oldThing[prop]);
+         deepCopy: (func, oldThing) => func(
+            Array.isArray(oldThing)
+            ? oldThing.map(
+               (currentValue) => util.deepCopy(func, currentValue)
+            )
+            : typeof oldThing === 'object'
+            ? Object.keys(oldThing).reduce(
+               function (newObject, prop) {
+                  newObject[prop] = util.deepCopy(func, oldThing[prop]);
                   return newObject;
-               }, {}))
-               : oldThing
-            );
-         }
+               },
+               {}
+            )
+            : oldThing
+         )
       });
 
       const self = Object.freeze({
@@ -64,7 +93,13 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!Number.isFinite(points1) || !Number.isFinite(points2)) {
                return;
             }
-            league = util.addTeam(util.addTeam(league, teamName1), teamName2);
+            league = util.addTeam(
+               util.addTeam(
+                  league,
+                  teamName1
+               ),
+               teamName2
+            );
             if (teamName1 !== teamName2) {
                const teamNames = league.map((team) => team.name);
                const whichTeam1 = teamNames.indexOf(teamName1);
@@ -76,9 +111,9 @@ document.addEventListener('DOMContentLoaded', function () {
                league[whichTeam2].actualPointsEarned += points2;
                league[whichTeam2].actualPointsConceded += points1;
             }
-            return util.deepFreeze(league);
+            return util.deepCopy(Object.freeze, league);
          },
-         createLeague: (oldLeague) => util.deepFreeze(util.createUnfrozenLeague(oldLeague)),
+         createLeague: (oldLeague) => util.deepCopy(Object.freeze, util.createUnfrozenLeague(oldLeague)),
          getAveragePointsPerMatch: (leagueOrTeam) => (
             Array.isArray(leagueOrTeam)
             ? leagueOrTeam.reduce(
@@ -150,7 +185,7 @@ document.addEventListener('DOMContentLoaded', function () {
                   laplaceEquivalentMatches + numMatchesPlayed
                );
             });
-            return util.deepFreeze(newLeague);
+            return util.deepCopy(Object.freeze, newLeague);
          },
          normalizeRatings: function (oldLeague) {
             const newLeague = util.createUnfrozenLeague(oldLeague);
@@ -161,7 +196,7 @@ document.addEventListener('DOMContentLoaded', function () {
             newLeague.forEach(function (team) {
                team.ratingEarned += averageRatingDeficit;
             });
-            return util.deepFreeze(newLeague);
+            return util.deepCopy(Object.freeze, newLeague);
          },
          totalRatingsDifference: (league1, league2) => league1.reduce(
             (diffSoFar, team, whichTeam) => diffSoFar + Math.abs(team.ratingEarned - league2[whichTeam].ratingEarned),
@@ -191,7 +226,7 @@ document.addEventListener('DOMContentLoaded', function () {
             (team, whichTeam) => ({
                classLevel: countiesInfo.find((c) => c.countyCode === team.name.toLowerCase())?.classLevel ?? 0,
                name: team.name,
-               adjustedRating: team.ratingEarned,
+               adjustedRating: (colley.getNumMatches(team) * team.ratingEarned + numMatchesInAdjustment * minRatingEarned) / (colley.getNumMatches(team) + numMatchesInAdjustment),
                ratingEarned: team.ratingEarned,
                nextRatingEarned: colley.iterateRatings(colleyLeague, colleyOptions)[whichTeam].ratingEarned,
                ratingConceded: team.ratingConceded,
@@ -209,12 +244,20 @@ document.addEventListener('DOMContentLoaded', function () {
                team.classLevel + ' '
                + team.name + ' '
                + team.adjustedRating.toFixed(6) + ' '
-               + team.ratingEarned.toFixed(6) + ' '
-               + team.ratingConceded.toFixed(6) + ' '
+               + team.ratingEarned?.toFixed(6) + ' '
+               + team.ratingConceded?.toFixed(6) + ' '
                + team.opponentsRatingEarned.toFixed(6) + ' '
                + team.opponentsRatingConceded.toFixed(6) + ' '
                + team.averagePointsPerMatch.toFixed(6) + ' '
                + team.nextRatingEarned.toFixed(6) + ' '
+               + (team.ratingEarned + team.opponentsRatingEarned).toFixed(6) + ' '
+               + (team.ratingEarned + 7 * team.opponentsRatingEarned).toFixed(6) + ' '
+               + (2 * team.ratingEarned + 7 * team.opponentsRatingEarned).toFixed(6) + ' '
+               + (team.ratingEarned * Math.log(team.numMatches)).toFixed(6) + ' '
+               + (team.opponentsRatingEarned * Math.log(team.numMatches)).toFixed(6) + ' '
+               + ((team.ratingEarned + team.opponentsRatingEarned) * Math.log(team.numMatches)).toFixed(6) + ' '
+               + ((team.ratingEarned + 7 * team.opponentsRatingEarned) * Math.log(team.numMatches)).toFixed(6) + ' '
+               + ((2 * team.ratingEarned + 7 * team.opponentsRatingEarned) * Math.log(team.numMatches)).toFixed(6) + ' '
                + team.numMatches + '\n'
             );
          });
@@ -249,8 +292,8 @@ document.addEventListener('DOMContentLoaded', function () {
                const newCountyNameDiv = document.createElement('div');
                newCountyNameDiv.classList.add('county-name');
                newCountyNameDiv.textContent = (whichPlace + 1) + '. ' + county.countyName;
-               newCountyDiv.appendChild(newCountyNameDiv);
-               newCountyDiv.appendChild(counties.createCanvas({
+               newCountyDiv.append(newCountyNameDiv);
+               newCountyDiv.append(counties.createCanvas({
                   county: county,
                   height: Math.round(40 + countyBar.barLength * 200),
                   isHorizontal: true,
@@ -261,15 +304,15 @@ document.addEventListener('DOMContentLoaded', function () {
                newCodeDiv.textContent = county.countyCode.toUpperCase();
                newCodeDiv.classList.add('county-code');
                newCodeDiv.classList.add('county-colour-name');
-               newCountyDiv.appendChild(newCodeDiv);
+               newCountyDiv.append(newCodeDiv);
                const newClassDiv = document.createElement('div');
                newClassDiv.textContent = county.classLevel ?? '-';
-               newCountyDiv.appendChild(newClassDiv);
-               barsElement.appendChild(newCountyDiv);
+               newCountyDiv.append(newClassDiv);
+               barsElement.append(newCountyDiv);
             } else {
                const blankDiv = document.createElement('div');
                blankDiv.textContent = '[' + countyBar.countyCode.toUpperCase() + ']';
-               barsElement.appendChild(blankDiv);
+               barsElement.append(blankDiv);
             }
          });
       };
@@ -296,19 +339,15 @@ document.addEventListener('DOMContentLoaded', function () {
          });
       });
 
-      document.querySelector('#clear-matches').addEventListener('click', function () {
-         matchResultsInputElement.value = '';
-      });
-
       const createSeasons = function (firstYear, lastYear, startWeights, weightFunc) {
          const yearDirection = (
             firstYear > lastYear
             ? -1
             : 1
          );
-         const numSeasons = (lastYear - firstYear) * yearDirection + 1;
+         const numYears = (lastYear - firstYear) * yearDirection + 1;
          const weights = Array.from(
-            {length: numSeasons - startWeights.length}
+            {length: numYears - startWeights.length}
          ).reduce(
             (oldWeights) => [
                ...oldWeights,
@@ -320,6 +359,12 @@ document.addEventListener('DOMContentLoaded', function () {
             ],
             startWeights
          );
+         console.log(weights.map(
+            (weight, which) => ({
+               year: firstYear + which * yearDirection,
+               weight: weight
+            })
+         ));
          return weights.map(
             (weight, which) => ({
                year: firstYear + which * yearDirection,
@@ -328,11 +373,7 @@ document.addEventListener('DOMContentLoaded', function () {
          );
       };
 
-      matchResultsInputElement.addEventListener('dblclick', function () {
-         const seasons = [
-            ...createSeasons(1878, 1890, [1, 1], (x, y) => x + y),
-            ...createSeasons(1899, 1891, [1, 2], (x, y) => x + y)
-         ];
+      const addSeasons = function (seasons) {
          seasons.reduce(
             function (seasonsSoFar, season) {
                (function addTheRest(howManyLeft) {
@@ -351,6 +392,52 @@ document.addEventListener('DOMContentLoaded', function () {
                getCountyMatches(season);
             }, 0);
          });
+      };
+
+      document.querySelector('#add-range').addEventListener('click', function () {
+         const fromSeasonSelect = document.querySelector('#from-season');
+         const fromSeason = Number(
+            fromSeasonSelect.options[
+               fromSeasonSelect.selectedIndex
+            ].value
+         );
+         const toSeasonSelect = document.querySelector('#to-season');
+         const toSeason = Number(
+            toSeasonSelect.options[
+               toSeasonSelect.selectedIndex
+            ].value
+         );
+         const seasonWeightsSelect = document.querySelector('#season-weights');
+         const seasonWeights = seasonWeightsSelect.options[
+            seasonWeightsSelect.selectedIndex
+         ].value;
+         addSeasons(
+            seasonWeights === 'linear'
+            ? createSeasons(fromSeason, toSeason, [1], (x) => x + 1)
+            : seasonWeights === 'triangular2'
+            ? createSeasons(fromSeason, toSeason, [], () => 1)
+            : seasonWeights === 'triangular3'
+            ? createSeasons(fromSeason, toSeason, [], () => 1)
+            : seasonWeights === 'quadratic2'
+            ? createSeasons(fromSeason, toSeason, [], () => 1)
+            : seasonWeights === 'quadratic4'
+            ? createSeasons(fromSeason, toSeason, [], () => 1)
+            : seasonWeights === 'fibonacci1'
+            ? createSeasons(fromSeason, toSeason, [1, 1], (x, y) => x + y)
+            : seasonWeights === 'fibonacci2'
+            ? createSeasons(fromSeason, toSeason, [1, 2], (x, y) => x + y)
+            : seasonWeights === 'exponential'
+            ? createSeasons(fromSeason, toSeason, [1], (x) => 2 * x)
+            : createSeasons(fromSeason, toSeason, [], () => 1)
+         );
+      });
+
+      matchResultsInputElement.addEventListener('dblclick', function () {
+         const seasons = [
+            ...createSeasons(firstCountySeason, 1890, [1, 1], (x, y) => x + y),
+            ...createSeasons(lastCountySeason, 1891, [1, 2], (x, y) => x + y)
+         ];
+         addSeasons(seasons);
       });
 
       const getLeagueInput = function () {
