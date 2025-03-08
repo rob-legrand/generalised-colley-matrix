@@ -300,26 +300,38 @@ document.addEventListener('DOMContentLoaded', function () {
          matchResultsInputElement.value = '';
       });
 
+      const createSeasons = function (firstYear, lastYear, startWeights, weightFunc) {
+         const yearDirection = (
+            firstYear > lastYear
+            ? -1
+            : 1
+         );
+         const numSeasons = (lastYear - firstYear) * yearDirection + 1;
+         const weights = Array.from(
+            {length: numSeasons - startWeights.length}
+         ).reduce(
+            (oldWeights) => [
+               ...oldWeights,
+               weightFunc(
+                  ...oldWeights.slice(
+                     oldWeights.length - weightFunc.length
+                  )
+               )
+            ],
+            startWeights
+         );
+         return weights.map(
+            (weight, which) => ({
+               year: firstYear + which * yearDirection,
+               weight: weight
+            })
+         );
+      };
+
       matchResultsInputElement.addEventListener('dblclick', function () {
          const seasons = [
-            {year: 1881, weight: 1},
-            {year: 1882, weight: 1},
-            {year: 1883, weight: 2},
-            {year: 1884, weight: 3},
-            {year: 1885, weight: 5},
-            {year: 1886, weight: 8},
-            {year: 1887, weight: 13},
-            {year: 1888, weight: 21},
-            {year: 1889, weight: 34},
-            {year: 1890, weight: 55},
-            {year: 1891, weight: 21},
-            {year: 1892, weight: 13},
-            {year: 1893, weight: 8},
-            {year: 1894, weight: 5},
-            {year: 1895, weight: 3},
-            {year: 1896, weight: 2},
-            {year: 1897, weight: 1},
-            {year: 1898, weight: 1}
+            ...createSeasons(1878, 1890, [1, 1], (x, y) => x + y),
+            ...createSeasons(1899, 1891, [1, 2], (x, y) => x + y)
          ];
          seasons.reduce(
             function (seasonsSoFar, season) {
@@ -332,6 +344,8 @@ document.addEventListener('DOMContentLoaded', function () {
                return seasonsSoFar;
             },
             []
+         ).sort(
+            () => Math.random() < 0.5
          ).forEach(function (season) {
             setTimeout(function () {
                getCountyMatches(season);
@@ -344,7 +358,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
          const pointValues = (function () {
             const pointValuesSelect = document.querySelector('#point-values');
-            const resultPoints = pointValuesSelect.options[pointValuesSelect.selectedIndex].value.split(',').map(
+            const resultPoints = pointValuesSelect.options[
+               pointValuesSelect.selectedIndex
+            ].value.split(',').map(
                (resultPoint) => Number(resultPoint)
             );
             return {
@@ -398,7 +414,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const oldColleyLeague = colleyLeague;
             colleyLeague = colley.iterateRatings(colleyLeague, colleyOptions);
             updateColleyLeague();
-            if (colley.totalRatingsDifference(oldColleyLeague, colleyLeague) > 1e-15 && numIterationsDone < 10000) {
+            if (colley.totalRatingsDifference(oldColleyLeague, colleyLeague) > 1e-15 && numIterationsDone < 50000) {
                colleyOutputElement.value += numIterationsDone + ' iterations so far . . .\n';
                setTimeout(function () {
                   keepIterating(numIterationsDone);
