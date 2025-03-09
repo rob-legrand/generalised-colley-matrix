@@ -12,23 +12,33 @@ document.addEventListener('DOMContentLoaded', function () {
       (ignore, whichSeason) => whichSeason + firstCountySeason
    );
 
-   countySeasons.forEach(
-      function (countySeason) {
+   document.querySelector('#add-matches').replaceChildren(
+      ...countySeasons.map(function (countySeason) {
          const newButton = document.createElement('button');
          newButton.setAttribute('type', 'button');
          newButton.textContent = countySeason;
-         document.querySelector('#add-matches').append(newButton);
+         return newButton;
+      })
+   );
+
+   document.querySelector('#from-season').replaceChildren(
+      ...countySeasons.map(function (countySeason) {
          const newFromOption = document.createElement('option');
          newFromOption.setAttribute('value', countySeason.toString());
          newFromOption.textContent = countySeason;
-         document.querySelector('#from-season').append(newFromOption);
+         return newFromOption;
+      })
+   );
+   document.querySelector('#from-season :first-child').setAttribute('selected', 'selected');
+
+   document.querySelector('#to-season').replaceChildren(
+      ...countySeasons.map(function (countySeason) {
          const newToOption = document.createElement('option');
          newToOption.setAttribute('value', countySeason.toString());
          newToOption.textContent = countySeason;
-         document.querySelector('#to-season').append(newToOption);
-      }
+         return newToOption;
+      })
    );
-   document.querySelector('#from-season :first-child').setAttribute('selected', 'selected');
    document.querySelector('#to-season :last-child').setAttribute('selected', 'selected');
 
    const countiesInfo = counties.createInfo();
@@ -280,41 +290,38 @@ document.addEventListener('DOMContentLoaded', function () {
          ).sort(
             (team1, team2) => team2.barLength - team1.barLength || team1.countyCode.localeCompare(team2.countyCode)
          );
-         [...barsElement.childNodes].forEach(function (childNode) {
-            childNode.remove();
-         });
-         countiesBars.forEach(function (countyBar, whichPlace) {
+         barsElement.replaceChildren(...countiesBars.map(function (countyBar, whichPlace) {
+            const newDiv = document.createElement('div');
             const county = countiesInfo.find((c) => c.countyCode === countyBar.countyCode);
             if (county !== undefined) {
-               const newCountyDiv = document.createElement('div');
-               newCountyDiv.title = (whichPlace + 1) + '. ' + county.countyName;
-               newCountyDiv.classList.add('county-bar');
+               newDiv.title = (whichPlace + 1) + '. ' + county.countyName;
+               newDiv.classList.add('county-bar');
                const newCountyNameDiv = document.createElement('div');
                newCountyNameDiv.classList.add('county-name');
                newCountyNameDiv.textContent = (whichPlace + 1) + '. ' + county.countyName;
-               newCountyDiv.append(newCountyNameDiv);
-               newCountyDiv.append(counties.createCanvas({
-                  county: county,
-                  height: Math.round(40 + countyBar.barLength * 200),
-                  isHorizontal: true,
-                  isVertical: true,
-                  width: 40
-               }));
                const newCodeDiv = counties.createCountyElement(county);
                newCodeDiv.textContent = county.countyCode.toUpperCase();
                newCodeDiv.classList.add('county-code');
                newCodeDiv.classList.add('county-colour-name');
-               newCountyDiv.append(newCodeDiv);
                const newClassDiv = document.createElement('div');
                newClassDiv.textContent = county.classLevel ?? '-';
-               newCountyDiv.append(newClassDiv);
-               barsElement.append(newCountyDiv);
+               newDiv.replaceChildren(
+                  newCountyNameDiv,
+                  counties.createCanvas({
+                     colours: county.colours,
+                     height: Math.round(40 + countyBar.barLength * 200),
+                     isHorizontal: true,
+                     isVertical: true,
+                     width: 40
+                  }),
+                  newCodeDiv,
+                  newClassDiv
+               );
             } else {
-               const blankDiv = document.createElement('div');
-               blankDiv.textContent = '[' + countyBar.countyCode.toUpperCase() + ']';
-               barsElement.append(blankDiv);
+               newDiv.textContent = '[' + countyBar.countyCode.toUpperCase() + ']';
             }
-         });
+            return newDiv;
+         }));
       };
 
       const getCountyMatches = function (year) {
@@ -359,12 +366,6 @@ document.addEventListener('DOMContentLoaded', function () {
             ],
             startWeights
          );
-         console.log(weights.map(
-            (weight, which) => ({
-               year: firstYear + which * yearDirection,
-               weight: weight
-            })
-         ));
          return weights.map(
             (weight, which) => ({
                year: firstYear + which * yearDirection,
