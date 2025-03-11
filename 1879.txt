@@ -1,5 +1,7 @@
+bed W hrt
 bed W lei
 bed W som
+dev W som
 drb L lan
 drb L not
 drb W yrk
@@ -11,6 +13,9 @@ gls D sur
 gls D yrk
 gls L not
 gls W som
+hef D sal
+hef D wor
+hrt D bed
 hrt W sfk
 hrt W sus
 hun D bed
@@ -38,8 +43,12 @@ not D yrk
 not W drb
 not W ken
 nth L lei
+sal W hef
 sfk D hrt
 sfk L ess
+som D wor
+som W hrt
+stf W bed
 sur D som
 sur D yrk
 sur L gls
