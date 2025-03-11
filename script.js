@@ -1,11 +1,11 @@
 /*jslint browser */
 
-import {counties} from '../cc/counties.js';
+import {counties} from '../county-cricket-colours/counties.js';
 
 document.addEventListener('DOMContentLoaded', function () {
    'use strict';
 
-   const firstCountySeason = 1878;
+   const firstCountySeason = 1875;
    const lastCountySeason = 1899;
    const countySeasons = Array.from(
       {length: lastCountySeason - firstCountySeason + 1},
@@ -413,30 +413,50 @@ document.addEventListener('DOMContentLoaded', function () {
             seasonWeightsSelect.selectedIndex
          ].value;
          addSeasons(
-            seasonWeights === 'linear'
-            ? createSeasons(fromSeason, toSeason, [1], (x) => x + 1)
+            seasonWeights === 'linear1'
+            ? createSeasons(fromSeason, toSeason, [1], (x1) => x1 + 1)
+            : seasonWeights === 'linear2'
+            ? createSeasons(fromSeason, toSeason, [1], (x1) => x1 + 2)
+            : seasonWeights === 'triangular1'
+            ? createSeasons(fromSeason, toSeason, [1, 1, 2], (x3, x2, x1) => 3 * x1 - 3 * x2 + x3)
             : seasonWeights === 'triangular2'
-            ? createSeasons(fromSeason, toSeason, [], () => 1)
+            ? createSeasons(fromSeason, toSeason, [1, 2, 4], (x3, x2, x1) => 3 * x1 - 3 * x2 + x3)
             : seasonWeights === 'triangular3'
-            ? createSeasons(fromSeason, toSeason, [], () => 1)
+            ? createSeasons(fromSeason, toSeason, [1, 3, 6], (x3, x2, x1) => 3 * x1 - 3 * x2 + x3)
+            : seasonWeights === 'quadratic1'
+            ? createSeasons(fromSeason, toSeason, [1, 1, 3], (x3, x2, x1) => 3 * x1 - 3 * x2 + x3)
             : seasonWeights === 'quadratic2'
-            ? createSeasons(fromSeason, toSeason, [], () => 1)
+            ? createSeasons(fromSeason, toSeason, [1, 2, 5], (x3, x2, x1) => 3 * x1 - 3 * x2 + x3)
+            : seasonWeights === 'quadratic3'
+            ? createSeasons(fromSeason, toSeason, [1, 3, 7], (x3, x2, x1) => 3 * x1 - 3 * x2 + x3)
             : seasonWeights === 'quadratic4'
-            ? createSeasons(fromSeason, toSeason, [], () => 1)
+            ? createSeasons(fromSeason, toSeason, [1, 4, 9], (x3, x2, x1) => 3 * x1 - 3 * x2 + x3)
+            : seasonWeights === 'tetrahedral1'
+            ? createSeasons(fromSeason, toSeason, [1, 1, 2, 5], (x4, x3, x2, x1) => 4 * x1 - 6 * x2 + 4 * x3 - x4)
+            : seasonWeights === 'tetrahedral2'
+            ? createSeasons(fromSeason, toSeason, [1, 2, 4, 8], (x4, x3, x2, x1) => 4 * x1 - 6 * x2 + 4 * x3 - x4)
+            : seasonWeights === 'tetrahedral4'
+            ? createSeasons(fromSeason, toSeason, [1, 4, 10, 20], (x4, x3, x2, x1) => 4 * x1 - 6 * x2 + 4 * x3 - x4)
+            : seasonWeights === 'cubic2'
+            ? createSeasons(fromSeason, toSeason, [1, 2, 4, 13], (x4, x3, x2, x1) => 4 * x1 - 6 * x2 + 4 * x3 - x4)
+            : seasonWeights === 'cubic8'
+            ? createSeasons(fromSeason, toSeason, [1, 8, 27, 64], (x4, x3, x2, x1) => 4 * x1 - 6 * x2 + 4 * x3 - x4)
             : seasonWeights === 'fibonacci1'
-            ? createSeasons(fromSeason, toSeason, [1, 1], (x, y) => x + y)
+            ? createSeasons(fromSeason, toSeason, [1, 1], (x2, x1) => x1 + x2)
             : seasonWeights === 'fibonacci2'
-            ? createSeasons(fromSeason, toSeason, [1, 2], (x, y) => x + y)
-            : seasonWeights === 'exponential'
-            ? createSeasons(fromSeason, toSeason, [1], (x) => 2 * x)
+            ? createSeasons(fromSeason, toSeason, [1, 2], (x2, x1) => x1 + x2)
+            : seasonWeights === 'exponential2'
+            ? createSeasons(fromSeason, toSeason, [1], (x1) => 2 * x1)
+            : seasonWeights === 'exponential3'
+            ? createSeasons(fromSeason, toSeason, [1], (x1) => 3 * x1)
             : createSeasons(fromSeason, toSeason, [], () => 1)
          );
       });
 
       matchResultsInputElement.addEventListener('dblclick', function () {
          const seasons = [
-            ...createSeasons(firstCountySeason, 1890, [1, 1], (x, y) => x + y),
-            ...createSeasons(lastCountySeason, 1891, [1, 2], (x, y) => x + y)
+            ...createSeasons(firstCountySeason, 1890, [1, 1], (x2, x1) => x1 + x2),
+            ...createSeasons(lastCountySeason, 1891, [1, 2], (x2, x1) => x1 + x2)
          ];
          addSeasons(seasons);
       });
