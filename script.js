@@ -99,8 +99,8 @@ document.addEventListener('DOMContentLoaded', function () {
       });
 
       const self = Object.freeze({
-         addMatchResult: function (league, teamName1, points1, teamName2, points2) {
-            if (!Number.isFinite(points1) || !Number.isFinite(points2)) {
+         addMatchResult: function (league, teamName1, points1, teamName2, points2, weight = 1) {
+            if (!Number.isFinite(points1) || !Number.isFinite(points2) || !Number.isFinite(weight)) {
                return;
             }
             league = util.addTeam(
@@ -114,12 +114,12 @@ document.addEventListener('DOMContentLoaded', function () {
                const teamNames = league.map((team) => team.name);
                const whichTeam1 = teamNames.indexOf(teamName1);
                const whichTeam2 = teamNames.indexOf(teamName2);
-               league[whichTeam1].numMatchesVersus[whichTeam2] += 1;
-               league[whichTeam1].actualPointsEarned += points1;
-               league[whichTeam1].actualPointsConceded += points2;
-               league[whichTeam2].numMatchesVersus[whichTeam1] += 1;
-               league[whichTeam2].actualPointsEarned += points2;
-               league[whichTeam2].actualPointsConceded += points1;
+               league[whichTeam1].numMatchesVersus[whichTeam2] += weight;
+               league[whichTeam1].actualPointsEarned += points1 * weight;
+               league[whichTeam1].actualPointsConceded += points2 * weight;
+               league[whichTeam2].numMatchesVersus[whichTeam1] += weight;
+               league[whichTeam2].actualPointsEarned += points2 * weight;
+               league[whichTeam2].actualPointsConceded += points1 * weight;
             }
             return util.deepCopy(Object.freeze, league);
          },
@@ -324,14 +324,20 @@ document.addEventListener('DOMContentLoaded', function () {
          }));
       };
 
-      const getCountyMatches = function (year) {
+      const getCountyMatches = function (year, weight = 1) {
          fetch(
             year + '.txt'
          ).then(
             (response) => response.text()
          ).then(
             function (data) {
-               matchResultsInputElement.value = data + '\n' + matchResultsInputElement.value;
+               matchResultsInputElement.value += '\n' + data.trim().split('\n').map(
+                  (line) => line + (
+                     weight > 1
+                     ? ' * ' + weight
+                     : ''
+                  )
+               ).join('\n') + '\n';
             }
          );
       };
@@ -375,23 +381,8 @@ document.addEventListener('DOMContentLoaded', function () {
       };
 
       const addSeasons = function (seasons) {
-         seasons.reduce(
-            function (seasonsSoFar, season) {
-               (function addTheRest(howManyLeft) {
-                  if (howManyLeft > 0) {
-                     seasonsSoFar = [...seasonsSoFar, season.year];
-                     addTheRest(howManyLeft - 1);
-                  }
-               }(season.weight));
-               return seasonsSoFar;
-            },
-            []
-         ).sort(
-            () => Math.random() < 0.5
-         ).forEach(function (season) {
-            setTimeout(function () {
-               getCountyMatches(season);
-            }, 0);
+         seasons.forEach(function (season) {
+            getCountyMatches(season.year, season.weight);
          });
       };
 
@@ -441,12 +432,26 @@ document.addEventListener('DOMContentLoaded', function () {
             ? createSeasons(fromSeason, toSeason, [1, 2, 4, 13], (x4, x3, x2, x1) => 4 * x1 - 6 * x2 + 4 * x3 - x4)
             : seasonWeights === 'cubic8'
             ? createSeasons(fromSeason, toSeason, [1, 8, 27, 64], (x4, x3, x2, x1) => 4 * x1 - 6 * x2 + 4 * x3 - x4)
+            : seasonWeights === 'padovan1'
+            ? createSeasons(fromSeason, toSeason, [1, 1, 1], (x3, x2, x1) => x2 + x3)
+            : seasonWeights === 'padovan2'
+            ? createSeasons(fromSeason, toSeason, [1, 2, 3], (x3, x2, x1) => x2 + x3)
+            : seasonWeights === 'narayana1'
+            ? createSeasons(fromSeason, toSeason, [1, 1, 1], (x3, x2, x1) => x1 + x3)
+            : seasonWeights === 'narayana2'
+            ? createSeasons(fromSeason, toSeason, [1, 2, 3], (x3, x2, x1) => x1 + x3)
             : seasonWeights === 'fibonacci1'
             ? createSeasons(fromSeason, toSeason, [1, 1], (x2, x1) => x1 + x2)
             : seasonWeights === 'fibonacci2'
             ? createSeasons(fromSeason, toSeason, [1, 2], (x2, x1) => x1 + x2)
+            : seasonWeights === 'jacobsthal'
+            ? createSeasons(fromSeason, toSeason, [1, 1], (x2, x1) => x1 + 2 * x2)
             : seasonWeights === 'exponential2'
             ? createSeasons(fromSeason, toSeason, [1], (x1) => 2 * x1)
+            : seasonWeights === 'pell1'
+            ? createSeasons(fromSeason, toSeason, [1, 1], (x2, x1) => 2 * x1 + x2)
+            : seasonWeights === 'pell2'
+            ? createSeasons(fromSeason, toSeason, [1, 2], (x2, x1) => 2 * x1 + x2)
             : seasonWeights === 'exponential3'
             ? createSeasons(fromSeason, toSeason, [1], (x1) => 3 * x1)
             : createSeasons(fromSeason, toSeason, [], () => 1)
@@ -456,7 +461,7 @@ document.addEventListener('DOMContentLoaded', function () {
       matchResultsInputElement.addEventListener('dblclick', function () {
          const seasons = [
             ...createSeasons(firstCountySeason, 1890, [1, 1], (x2, x1) => x1 + x2),
-            ...createSeasons(lastCountySeason, 1891, [1, 2], (x2, x1) => x1 + x2)
+            ...createSeasons(lastCountySeason, 1891, [1], (x1) => 2 * x1)
          ];
          addSeasons(seasons);
       });
@@ -487,13 +492,19 @@ document.addEventListener('DOMContentLoaded', function () {
             const inputTokens = inputLine.replace(/\s+/g, ' ').trim().split(' ');
             if (inputTokens.length >= 3) {
                const matchResult = inputTokens[1].toLowerCase();
+               const weight = (
+                  (inputTokens.length >= 5 && inputTokens[3] === '*' && Number.isFinite(parseInt(inputTokens[4], 10)))
+                  ? parseInt(inputTokens[4], 10)
+                  : 1
+               );
                if (pointValues.hasOwnProperty(matchResult)) {
                   newColleyLeague = colley.addMatchResult(
                      newColleyLeague,
                      inputTokens[0],
                      pointValues[matchResult][0],
                      inputTokens[2],
-                     pointValues[matchResult][1]
+                     pointValues[matchResult][1],
+                     weight
                   );
                } else {
                   matchResultsInputElement.value = 'invalid match result: ' + inputTokens[1] + '\n' + matchResultsInputElement.value;
