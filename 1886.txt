@@ -3,6 +3,8 @@ che L lan
 che L yrk
 cum D dur
 cum W wes
+dev D wil
+dev W dor
 drb L gls
 drb L ken
 drb L lan
@@ -69,7 +71,9 @@ not W yrk
 nth D stf
 nth D war
 nth W nfk
+rad L sal
 rut L stf
+sal D rad
 sal D wor
 som L war
 som W ham

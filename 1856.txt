@@ -1,0 +1,9 @@
+bed D nth
+ken L sur
+ken W sus
+nth L bed
+oxf L sur
+sur W oxf
+sur W sus
+sus L sur
+sus W ken

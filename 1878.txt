@@ -1,4 +1,8 @@
+abd L kcd
+bed T stf
 bed W hrt
+bed W hun
+cum W nbl
 drb D ham
 drb L ken
 drb L not
@@ -13,12 +17,11 @@ gls W not
 gls W sus
 ham L drb
 ham L ken
-hef D sal
-hef W wor
 hrt D bed
 hrt D som
 hrt W ess
 hrt W sfk
+hun L bed
 ken L lan
 ken L not
 ken W drb
@@ -46,11 +49,10 @@ not W lei
 not W sur
 not W yrk
 nth L lei
-sal W hef
+rox L nbl
 sfk D hrt
 sfk W ess
 sfk W nfk
-som W dev
 som W wor
 sur D ken
 sur D mdx
@@ -62,7 +64,6 @@ sus L gls
 sus L sur
 sus L yrk
 sus W ken
-wor W hef
 yrk D lan
 yrk L mdx
 yrk W drb

@@ -1,0 +1,13 @@
+cam D sur
+cam W ken
+crm W gla
+ken W sur
+ken W sus
+nth L hun
+sur L cam
+sur L ken
+sur W not
+sur W not
+sur W yrk
+sus L ken
+yrk W sur

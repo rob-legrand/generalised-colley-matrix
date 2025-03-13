@@ -4,12 +4,16 @@ che L lei
 che W stf
 cum D wes
 cum W dur
-dev D som
+dev D wil
+dev L cnw
+dev L ham
+dor W som
 drb L lan
 drb L sur
 drb L yrk
 drb W ess
 drb W lei
+dur D nbl
 dur W cum
 ess D sur
 ess L drb
@@ -61,6 +65,7 @@ mdx L not
 mdx L sur
 mdx W ken
 mdx W yrk
+nbl L dur
 nfk D ham
 nfk L ess
 not D mdx
@@ -74,6 +79,7 @@ nth L hrt
 nth L lan
 nth L war
 nth W stf
+sal D rad
 som W ham
 som W war
 stf L war

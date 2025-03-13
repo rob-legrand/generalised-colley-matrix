@@ -1,6 +1,5 @@
 bed L buc
 bed L hrt
-bed L sur
 bed W oxf
 buc W bed
 buc W nth
@@ -11,6 +10,7 @@ che L lei
 che L war
 che W stf
 dev L wor
+dev W gla
 drb D yrk
 drb L lan
 drb L sur
@@ -26,6 +26,9 @@ ess W drb
 ess W ham
 ess W lei
 ess W sur
+gla D hef
+gla W dev
+gla W mnm
 gls D ken
 gls D sus
 gls L lan
@@ -40,7 +43,9 @@ ham W dev
 ham W ess
 ham W sus
 ham W war
+hef L gla
 hef L wor
+hef W sal
 hrt L bed
 hrt W lin
 hrt W nfk
@@ -81,6 +86,8 @@ mdx W lan
 mdx W not
 mdx W som
 mdx W sur
+mnm L gla
+mnm W hef
 nbl D dur
 nfk D hrt
 nfk W cam
@@ -100,6 +107,8 @@ oxf D sal
 oxf D stf
 oxf W cam
 sal D oxf
+sal D war
+sal L hef
 som D ken
 som D lan
 som D mdx
@@ -109,6 +118,7 @@ som L yrk
 som W gls
 som W not
 stf L che
+stf L not
 stf L nth
 stf L oxf
 stf L war
@@ -118,7 +128,6 @@ sur L lan
 sur L mdx
 sur L som
 sur L sus
-sur W bed
 sur W drb
 sur W ess
 sur W gls
@@ -135,6 +144,7 @@ sus L sur
 sus L yrk
 sus W gls
 sus W som
+war D sal
 war D wor
 war L not
 war L sur

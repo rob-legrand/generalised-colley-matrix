@@ -3,6 +3,8 @@ che L yrk
 che W stf
 cum D wes
 cum L dur
+dev L cnw
+dev W wil
 drb L ess
 drb L lan
 drb L mdx
@@ -71,7 +73,10 @@ not L sur
 not W sus
 nth L hrt
 nth L stf
+rad L sal
+sal D rad
 sal W wor
+som D dev
 som L war
 som W ess
 som W ham
@@ -104,6 +109,7 @@ war D yrk
 war W lei
 war W som
 wes L cum
+wil D dev
 wor W hef
 yrk D che
 yrk D ken

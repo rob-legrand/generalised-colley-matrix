@@ -1,6 +1,10 @@
+ang D abd
 che D lan
 che W nbl
+cum D nbl
 cum W dur
+dev D wil
+dor D wil
 drb L ken
 drb L lan
 drb L sur
@@ -17,10 +21,12 @@ gls L not
 gls L sus
 gls L yrk
 gls W lan
+ham L dor
 ham L sur
 ham L sus
 ham W ken
 ham W som
+hef W rad
 hrt D ess
 hrt D war
 ken L lan
@@ -48,6 +54,8 @@ mdx L not
 mdx L sur
 mdx W gls
 mdx W ken
+mnm D bre
+nbl D cum
 nbl D dur
 nbl W che
 nfk W ess
@@ -62,6 +70,7 @@ nth D ess
 nth W nfk
 nth W rut
 nth W war
+sal W stf
 sfk L nfk
 som L ken
 som L lan
@@ -89,6 +98,7 @@ sus W yrk
 war L lei
 war L nth
 war W hrt
+wil L dev
 wor L sal
 wor W stf
 yrk D mdx

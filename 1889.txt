@@ -2,6 +2,8 @@ che L lan
 che L stf
 che L yrk
 che W nth
+dev L wil
+dev W cnw
 drb L not
 drb L sur
 drb L yrk
@@ -26,6 +28,8 @@ ham D sus
 ham L som
 ham L sur
 ham L war
+hef L sal
+hef L wor
 hrt D ess
 hrt D nfk
 hrt D nth
@@ -58,6 +62,7 @@ mdx L not
 mdx L sur
 mdx W gls
 mdx W yrk
+nbl D dur
 nfk D hrt
 nfk L ham
 nfk L nbl
@@ -104,11 +109,12 @@ sus W ham
 war D ham
 war L gls
 war L lan
-war L lin
 war L stf
 war W lei
 war W som
 war W yrk
+wil L dev
+wor W hef
 wor W sal
 yrk D che
 yrk D drb

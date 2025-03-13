@@ -1,0 +1,8 @@
+brk W buc
+dor W som
+hef D wor
+ken D sur
+ken W sus
+sur W ken
+sus L ken
+wor W hef

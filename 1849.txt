@@ -1,0 +1,10 @@
+brk D buc
+brk D buc
+ken W sus
+lan L yrk
+sur W sus
+sus L ken
+sus W sur
+wor W hef
+yrk L ken
+yrk W lan

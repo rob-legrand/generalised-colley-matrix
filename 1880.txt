@@ -1,6 +1,10 @@
 bed D sfk
 bed D som
 bed W hrt
+che W stf
+cum D wes
+cum L nbl
+dev L dor
 dev W ham
 drb D sus
 drb L lan
@@ -17,7 +21,6 @@ ham D dev
 ham L som
 ham L sus
 hrt D bed
-hrt W ess
 hrt W nth
 hrt W som
 ken L lan
@@ -34,10 +37,13 @@ lan W sur
 lei D bed
 lei L som
 lei W sus
+lin L nfk
 mdx D gls
 mdx D sur
 mdx L not
 mdx L yrk
+nbl D cum
+nfk W lin
 nfk W sfk
 not D gls
 not D sur
@@ -45,6 +51,7 @@ not W lan
 not W mdx
 not W yrk
 nth D hrt
+rox L nbl
 sfk L ess
 sfk L nfk
 sfk W bed
@@ -62,6 +69,7 @@ sus L ken
 sus L som
 sus W ham
 sus W lei
+war W stf
 yrk D gls
 yrk D ken
 yrk D lan

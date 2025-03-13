@@ -1,7 +1,10 @@
+bre W mnm
 cae L che
 che D war
 che W cae
 che W sal
+dev L ham
+dor D dev
 drb D yrk
 drb L lan
 drb L sus
@@ -44,6 +47,7 @@ mdx L yrk
 mdx W gls
 mdx W ken
 mdx W sur
+mnm D bre
 nbl D dur
 nfk L ess
 nfk W lei
@@ -85,6 +89,7 @@ sus W ham
 sus W ken
 war L che
 war W stf
+wil W dor
 wor D stf
 wor W sal
 yrk D lei

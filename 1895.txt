@@ -8,6 +8,7 @@ buc D nth
 buc W bed
 buc W oxf
 cam L nfk
+cam W hun
 che D stf
 che D war
 che D wor
@@ -102,6 +103,7 @@ mdx L yrk
 mdx W ken
 mdx W not
 mnm D gla
+mnm L wil
 mnm W hef
 nfk D cam
 nfk D oxf
@@ -169,12 +171,14 @@ war D yrk
 war L lan
 war W gls
 war W ham
+wil D mnm
 wil L bed
 wor D oxf
 wor L hrt
 wor W che
 wor W dur
 wor W stf
+wor W war
 yrk D ken
 yrk D sus
 yrk L drb
