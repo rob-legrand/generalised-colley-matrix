@@ -5,8 +5,8 @@ import {counties} from '../county-cricket-colours/counties.js';
 document.addEventListener('DOMContentLoaded', function () {
    'use strict';
 
-   const firstCountySeason = 1875;
-   const lastCountySeason = 1899;
+   const firstCountySeason = 1846;
+   const lastCountySeason = 1901;
    const countySeasons = Array.from(
       {length: lastCountySeason - firstCountySeason + 1},
       (ignore, whichSeason) => whichSeason + firstCountySeason
@@ -231,10 +231,10 @@ document.addEventListener('DOMContentLoaded', function () {
       const updateColleyLeague = function () {
          const maxMatchesPlayed = Math.max(...colleyLeague.map((team) => colley.getNumMatches(team)));
          const minRatingEarned = Math.min(...colleyLeague.map((team) => team.ratingEarned));
-         const numMatchesInAdjustment = maxMatchesPlayed / 300;
+         const numMatchesInAdjustment = maxMatchesPlayed / 1000;
          const standings = colleyLeague.map(
             (team, whichTeam) => ({
-               classLevel: countiesInfo.find((c) => c.countyCode === team.name.toLowerCase())?.classLevel ?? 0,
+               classLevel: countiesInfo.find((c) => c.countyCode === team.name.toLowerCase())?.classLevel ?? Number.POSITIVE_INFINITY,
                name: team.name,
                adjustedRating: (colley.getNumMatches(team) * team.ratingEarned + numMatchesInAdjustment * minRatingEarned) / (colley.getNumMatches(team) + numMatchesInAdjustment),
                ratingEarned: team.ratingEarned,
@@ -246,12 +246,20 @@ document.addEventListener('DOMContentLoaded', function () {
                numMatches: colley.getNumMatches(team)
             })
          ).sort(
-            (team1, team2) => team2.adjustedRating - team1.adjustedRating || team1.name.localeCompare(team2.name)
+            (team1, team2) => (
+               team2.adjustedRating - team1.adjustedRating
+               || team1.classLevel - team2.classLevel
+               || team1.name.localeCompare(team2.name)
+            )
          );
          colleyOutputElement.value = '       AR       RE       RC       ORE      ORC      P/M      NRE\n';
          standings.forEach(function (team) {
             colleyOutputElement.value += (
-               team.classLevel + ' '
+               (
+                  Number.isInteger(team.classLevel)
+                  ? team.classLevel
+                  : 'X'
+               ) + ' '
                + team.name + ' '
                + team.adjustedRating.toFixed(6) + ' '
                + team.ratingEarned?.toFixed(6) + ' '
@@ -287,8 +295,6 @@ document.addEventListener('DOMContentLoaded', function () {
                   : 1
                )
             })
-         ).sort(
-            (team1, team2) => team2.barLength - team1.barLength || team1.countyCode.localeCompare(team2.countyCode)
          );
          barsElement.replaceChildren(...countiesBars.map(function (countyBar, whichPlace) {
             const newDiv = document.createElement('div');
@@ -460,8 +466,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
       matchResultsInputElement.addEventListener('dblclick', function () {
          const seasons = [
-            ...createSeasons(firstCountySeason, 1890, [1, 1], (x2, x1) => x1 + x2),
-            ...createSeasons(lastCountySeason, 1891, [1], (x1) => 2 * x1)
+            ...createSeasons(firstCountySeason, 1890, [1, 1, 1], (x3, x2, x1) => x2 + x3),
+            ...createSeasons(lastCountySeason, 1891, [1], (x1) => 3 * x1)
          ];
          addSeasons(seasons);
       });
