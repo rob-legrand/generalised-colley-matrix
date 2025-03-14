@@ -2,7 +2,7 @@ bed D sfk
 bed D som
 bed W hrt
 che W stf
-cum D wes
+cum D wml
 cum L nbl
 dev L dor
 dev W ham

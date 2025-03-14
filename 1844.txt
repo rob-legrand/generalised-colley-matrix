@@ -1,0 +1,5 @@
+brk L buc
+ken L sus
+sal W wor
+sus L ken
+wor L sal

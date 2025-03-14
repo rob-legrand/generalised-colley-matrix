@@ -10,7 +10,11 @@ buc W oxf
 cam D nbl
 cam L dur
 cam L nfk
-che L stf
+cnw D dev
+cnw L gla
+dev D dor
+dev L cnw
+dor L dev
 dor L wil
 drb D ess
 drb D lei
@@ -33,6 +37,8 @@ ess W lan
 ess W war
 ess W yrk
 gla L wor
+gla W cnw
+gla W mnm
 gla W wil
 gls D mdx
 gls D som
@@ -93,8 +99,10 @@ mdx D yrk
 mdx L sur
 mdx W ken
 mdx W sus
+mnm D gla
 mnm L wil
 nbl D nfk
+nbl D nth
 nbl L dur
 nbl W cam
 nfk L nbl
@@ -113,6 +121,7 @@ not W sus
 nth D dur
 nth D stf
 nth D wor
+nth W nbl
 oxf L buc
 oxf L wil
 oxf W brk
@@ -125,9 +134,9 @@ som L yrk
 som W ken
 som W sur
 stf D war
-stf W che
 stf W not
 stf W nth
+stf W sal
 sur D ess
 sur D yrk
 sur L gls

@@ -5,8 +5,8 @@ import {counties} from '../county-cricket-colours/counties.js';
 document.addEventListener('DOMContentLoaded', function () {
    'use strict';
 
-   const firstCountySeason = 1846;
-   const lastCountySeason = 1901;
+   const firstCountySeason = 1842;
+   const lastCountySeason = 1902;
    const countySeasons = Array.from(
       {length: lastCountySeason - firstCountySeason + 1},
       (ignore, whichSeason) => whichSeason + firstCountySeason

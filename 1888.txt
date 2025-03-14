@@ -1,7 +1,7 @@
 che L lan
 che L yrk
 che W stf
-cum D wes
+cum D wml
 cum L dur
 dev L cnw
 dev W wil
@@ -108,7 +108,7 @@ war D stf
 war D yrk
 war W lei
 war W som
-wes L cum
+wml L cum
 wil D dev
 wor W hef
 yrk D che

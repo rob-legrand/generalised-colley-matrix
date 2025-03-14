@@ -8,6 +8,10 @@ buc W nth
 buc W oxf
 cam D nfk
 cam D oxf
+cnw D dev
+dev D dor
+dev W cnw
+dor L dev
 drb D lei
 drb D not
 drb D yrk
@@ -118,6 +122,7 @@ som L lan
 som L yrk
 som W sur
 stf L nbl
+stf L war
 sur L lan
 sur L mdx
 sur L sus
@@ -149,6 +154,7 @@ war D yrk
 war L lan
 war L sur
 war W ken
+war W stf
 wil D brk
 wil L oxf
 wil W mnm

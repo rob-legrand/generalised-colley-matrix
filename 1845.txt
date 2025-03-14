@@ -1,0 +1,6 @@
+dor L som
+ken L sus
+ken W not
+not W ken
+som W dor
+sus W ken

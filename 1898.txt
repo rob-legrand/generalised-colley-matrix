@@ -10,6 +10,9 @@ cam D hrt
 cam D nfk
 cam L dur
 cam W nbl
+cnw L dor
+cnw L gla
+dor D cnw
 drb D ham
 drb D not
 drb D war
@@ -33,6 +36,8 @@ ess W lan
 ess W sur
 ess W war
 gla D wor
+gla W cnw
+gla W mnm
 gla W wil
 gls D lan
 gls D mdx
@@ -54,6 +59,7 @@ ham L yrk
 ham W lei
 ham W som
 ham W wil
+hef W sal
 hrt D buc
 hrt D cam
 hrt L nfk
@@ -99,6 +105,7 @@ mdx W lan
 mdx W lei
 mdx W sur
 mdx W sus
+mnm D gla
 mnm W wil
 nbl D cam
 nbl D nfk
@@ -116,12 +123,15 @@ not D yrk
 not L mdx
 not W ken
 nth D brk
+nth D not
 nth D wor
+nth L war
 nth W hrt
 nth W stf
 oxf D buc
 oxf D wil
 oxf W brk
+sal W hef
 som D ham
 som D ken
 som D sur
@@ -132,6 +142,7 @@ som L mdx
 som L yrk
 stf D hrt
 stf D nth
+stf D sal
 stf L not
 stf L war
 sur D ham
