@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function () {
    'use strict';
 
    const firstCountySeason = 1842;
-   const lastCountySeason = 1902;
+   const lastCountySeason = 1903;
    const countySeasons = Array.from(
       {length: lastCountySeason - firstCountySeason + 1},
       (ignore, whichSeason) => whichSeason + firstCountySeason
@@ -159,6 +159,8 @@ document.addEventListener('DOMContentLoaded', function () {
          ),
          iterateRatings: function (oldLeague, options) {
             const averageActualPointsPerMatch = self.getAveragePointsPerMatch(oldLeague);
+            const minimumActualPointsPerMatch = averageActualPointsPerMatch;
+            const maximumActualPointsPerMatch = averageActualPointsPerMatch;
             const newLeague = util.createUnfrozenLeague(oldLeague);
             const strengthOfScheduleFactor = (
                (
@@ -168,12 +170,15 @@ document.addEventListener('DOMContentLoaded', function () {
                ? options.strengthOfScheduleFactor
                : 1 // Colley's default was 1; should be nonnegative and maybe no more than 1
             );
+            const avgMatchesPlayed = oldLeague.reduce((sum, team) => self.getNumMatches(team), 0) / oldLeague.length;
             const laplaceEquivalentMatches = (
                (
                   Number.isFinite(options?.laplaceEquivalentMatches)
                   && options.laplaceEquivalentMatches > 0
                )
                ? options.laplaceEquivalentMatches
+               : typeof options?.laplaceEquivalentMatches === 'string'
+               ? avgMatchesPlayed
                : 1 // Colley's default was 2; should be positive
             );
             oldLeague.forEach(function (team, whichTeam) {
@@ -182,7 +187,7 @@ document.addEventListener('DOMContentLoaded', function () {
                   numMatchesPlayed * averageActualPointsPerMatch - self.getOpponentsTotalRatingsConceded(oldLeague, whichTeam)
                );
                newLeague[whichTeam].ratingEarned = (
-                  laplaceEquivalentMatches * averageActualPointsPerMatch + newLeague[whichTeam].effectivePointsEarned
+                  laplaceEquivalentMatches * minimumActualPointsPerMatch + newLeague[whichTeam].effectivePointsEarned
                ) / (
                   laplaceEquivalentMatches + numMatchesPlayed
                );
@@ -190,7 +195,7 @@ document.addEventListener('DOMContentLoaded', function () {
                   numMatchesPlayed * averageActualPointsPerMatch - self.getOpponentsTotalRatingsEarned(oldLeague, whichTeam)
                );
                newLeague[whichTeam].ratingConceded = (
-                  laplaceEquivalentMatches * averageActualPointsPerMatch + newLeague[whichTeam].effectivePointsConceded
+                  laplaceEquivalentMatches * maximumActualPointsPerMatch + newLeague[whichTeam].effectivePointsConceded
                ) / (
                   laplaceEquivalentMatches + numMatchesPlayed
                );
@@ -222,7 +227,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
       const colleyOptions = {
          strengthOfScheduleFactor: 1,
-         laplaceEquivalentMatches: 1
+         laplaceEquivalentMatches: '10000'
       };
       const matchResultsInputElement = document.querySelector('#match-results-input');
       const colleyOutputElement = document.querySelector('#colley-output');
@@ -231,12 +236,12 @@ document.addEventListener('DOMContentLoaded', function () {
       const updateColleyLeague = function () {
          const maxMatchesPlayed = Math.max(...colleyLeague.map((team) => colley.getNumMatches(team)));
          const minRatingEarned = Math.min(...colleyLeague.map((team) => team.ratingEarned));
-         const numMatchesInAdjustment = maxMatchesPlayed / 1000;
+         const numMatchesInAdjustment = maxMatchesPlayed / 100;
          const standings = colleyLeague.map(
             (team, whichTeam) => ({
                classLevel: countiesInfo.find((c) => c.countyCode === team.name.toLowerCase())?.classLevel ?? Number.POSITIVE_INFINITY,
                name: team.name,
-               adjustedRating: (colley.getNumMatches(team) * team.ratingEarned + numMatchesInAdjustment * minRatingEarned) / (colley.getNumMatches(team) + numMatchesInAdjustment),
+               adjustedRating: team.ratingEarned,
                ratingEarned: team.ratingEarned,
                nextRatingEarned: colley.iterateRatings(colleyLeague, colleyOptions)[whichTeam].ratingEarned,
                ratingConceded: team.ratingConceded,
@@ -466,8 +471,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
       matchResultsInputElement.addEventListener('dblclick', function () {
          const seasons = [
-            ...createSeasons(firstCountySeason, 1890, [1, 1, 1], (x3, x2, x1) => x2 + x3),
-            ...createSeasons(lastCountySeason, 1891, [1], (x1) => 3 * x1)
+            ...createSeasons(firstCountySeason, 1890, [1, 1, 1], (x3, x2, x1) => x2 + x3), // padovan1
+            ...createSeasons(lastCountySeason, 1891, [1], (x2, x1) => 2 * x1 + x2) // pell2
          ];
          addSeasons(seasons);
       });
@@ -493,22 +498,33 @@ document.addEventListener('DOMContentLoaded', function () {
          }());
 
          newColleyLeague = colley.createLeague();
+         const havePlayedEachOther = {};
 
          matchResultsInputElement.value.split('\n').forEach(function (inputLine) {
             const inputTokens = inputLine.replace(/\s+/g, ' ').trim().split(' ');
             if (inputTokens.length >= 3) {
+               const team1 = inputTokens[0];
                const matchResult = inputTokens[1].toLowerCase();
+               const team2 = inputTokens[2];
                const weight = (
                   (inputTokens.length >= 5 && inputTokens[3] === '*' && Number.isFinite(parseInt(inputTokens[4], 10)))
                   ? parseInt(inputTokens[4], 10)
                   : 1
                );
-               if (pointValues.hasOwnProperty(matchResult)) {
+               if (!Object.hasOwn(havePlayedEachOther, team1)) {
+                  havePlayedEachOther[team1] = {};
+               }
+               havePlayedEachOther[team1][team2] = true;
+               if (!Object.hasOwn(havePlayedEachOther, team2)) {
+                  havePlayedEachOther[team2] = {};
+               }
+               havePlayedEachOther[team2][team1] = true;
+               if (Object.hasOwn(pointValues, matchResult)) {
                   newColleyLeague = colley.addMatchResult(
                      newColleyLeague,
-                     inputTokens[0],
+                     team1,
                      pointValues[matchResult][0],
-                     inputTokens[2],
+                     team2,
                      pointValues[matchResult][1],
                      weight
                   );
@@ -516,6 +532,19 @@ document.addEventListener('DOMContentLoaded', function () {
                   matchResultsInputElement.value = 'invalid match result: ' + inputTokens[1] + '\n' + matchResultsInputElement.value;
                }
             }
+         });
+         Object.keys(havePlayedEachOther).forEach(function (team) {
+            Object.keys(havePlayedEachOther).forEach(function (teamA) {
+               Object.keys(havePlayedEachOther).forEach(function (teamB) {
+                  if (havePlayedEachOther[teamA][team] && havePlayedEachOther[team][teamB]) {
+                     havePlayedEachOther[teamA][teamB] = true;
+                  }
+               });
+            });
+         });
+         matchResultsInputElement.value = '';
+         Object.keys(havePlayedEachOther).toSorted().forEach(function (team) {
+            matchResultsInputElement.value += team + ': ' + Object.keys(havePlayedEachOther[team]).toSorted().join() + '\n';
          });
          return newColleyLeague;
       };
