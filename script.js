@@ -5,7 +5,7 @@ import {counties} from '../county-cricket-colours/counties.js';
 document.addEventListener('DOMContentLoaded', function () {
    'use strict';
 
-   const firstCountySeason = 1842;
+   const firstCountySeason = 1837;
    const lastCountySeason = 1903;
    const countySeasons = Array.from(
       {length: lastCountySeason - firstCountySeason + 1},
@@ -132,10 +132,38 @@ document.addEventListener('DOMContentLoaded', function () {
             ) / self.getNumMatches(leagueOrTeam)
             : leagueOrTeam.actualPointsEarned / self.getNumMatches(leagueOrTeam)
          ),
+         getAveragePointsPerMatchInClass: (leagueOrTeam, classLevel) => (
+            Array.isArray(leagueOrTeam)
+            ? leagueOrTeam.filter(
+               (team) => team.classLevel === classLevel
+            ).reduce(
+               (numPointsSoFar, team) => numPointsSoFar + team.actualPointsEarned,
+               0
+            ) / self.getNumMatches(
+               leagueOrTeam.filter(
+                  (team) => team.classLevel === classLevel
+               )
+            )
+            : leagueOrTeam.actualPointsEarned / self.getNumMatches(leagueOrTeam)
+         ),
          getAverageRatingEarned: (league) => league.reduce(
             (totalRatingEarnedSoFar, team) => totalRatingEarnedSoFar + team.ratingEarned,
             0
          ) / league.length,
+         getAverageRatingEarnedInClass: (league, classLevel) => league.filter(
+            (team) => team.classLevel === classLevel
+         ).reduce(
+            (totalRatingEarnedSoFar, team) => totalRatingEarnedSoFar + team.ratingEarned,
+            0
+         ) / league.filter(
+            (team) => team.classLevel === classLevel
+         ).length,
+         getLowestRatingEarnedInClass: (league, classLevel) => league.filter(
+            (team) => team.classLevel === classLevel
+         ).reduce(
+            (totalRatingEarnedSoFar, team) => Math.min(totalRatingEarnedSoFar, team.ratingEarned),
+            Number.POSITIVE_INFINITY
+         ),
          getNumMatches: (leagueOrTeam) => (
             Array.isArray(leagueOrTeam)
             ? leagueOrTeam.reduce((numMatchesSoFar, team) => numMatchesSoFar + self.getNumMatches(team), 0)
@@ -159,8 +187,6 @@ document.addEventListener('DOMContentLoaded', function () {
          ),
          iterateRatings: function (oldLeague, options) {
             const averageActualPointsPerMatch = self.getAveragePointsPerMatch(oldLeague);
-            const minimumActualPointsPerMatch = averageActualPointsPerMatch;
-            const maximumActualPointsPerMatch = averageActualPointsPerMatch;
             const newLeague = util.createUnfrozenLeague(oldLeague);
             const strengthOfScheduleFactor = (
                (
@@ -170,14 +196,14 @@ document.addEventListener('DOMContentLoaded', function () {
                ? options.strengthOfScheduleFactor
                : 1 // Colley's default was 1; should be nonnegative and maybe no more than 1
             );
-            const avgMatchesPlayed = oldLeague.reduce((sum, team) => self.getNumMatches(team), 0) / oldLeague.length;
+            const avgMatchesPlayed = oldLeague.reduce((sum, team) => sum + self.getNumMatches(team), 0) / oldLeague.length;
             const laplaceEquivalentMatches = (
                (
                   Number.isFinite(options?.laplaceEquivalentMatches)
                   && options.laplaceEquivalentMatches > 0
                )
                ? options.laplaceEquivalentMatches
-               : typeof options?.laplaceEquivalentMatches === 'string'
+               : options?.laplaceEquivalentMatches === 'avgMatchesPlayed'
                ? avgMatchesPlayed
                : 1 // Colley's default was 2; should be positive
             );
@@ -187,17 +213,21 @@ document.addEventListener('DOMContentLoaded', function () {
                   numMatchesPlayed * averageActualPointsPerMatch - self.getOpponentsTotalRatingsConceded(oldLeague, whichTeam)
                );
                newLeague[whichTeam].ratingEarned = (
-                  laplaceEquivalentMatches * minimumActualPointsPerMatch + newLeague[whichTeam].effectivePointsEarned
+                  laplaceEquivalentMatches * averageActualPointsPerMatch
+                  + newLeague[whichTeam].effectivePointsEarned
                ) / (
-                  laplaceEquivalentMatches + numMatchesPlayed
+                  laplaceEquivalentMatches
+                  + numMatchesPlayed
                );
                newLeague[whichTeam].effectivePointsConceded = team.actualPointsConceded + strengthOfScheduleFactor * (
                   numMatchesPlayed * averageActualPointsPerMatch - self.getOpponentsTotalRatingsEarned(oldLeague, whichTeam)
                );
                newLeague[whichTeam].ratingConceded = (
-                  laplaceEquivalentMatches * maximumActualPointsPerMatch + newLeague[whichTeam].effectivePointsConceded
+                  laplaceEquivalentMatches * averageActualPointsPerMatch
+                  + newLeague[whichTeam].effectivePointsConceded
                ) / (
-                  laplaceEquivalentMatches + numMatchesPlayed
+                  laplaceEquivalentMatches
+                  + numMatchesPlayed
                );
             });
             return util.deepCopy(Object.freeze, newLeague);
@@ -227,7 +257,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
       const colleyOptions = {
          strengthOfScheduleFactor: 1,
-         laplaceEquivalentMatches: '10000'
+         laplaceEquivalentMatches: 1
       };
       const matchResultsInputElement = document.querySelector('#match-results-input');
       const colleyOutputElement = document.querySelector('#colley-output');
@@ -281,6 +311,8 @@ document.addEventListener('DOMContentLoaded', function () {
                + ((team.ratingEarned + team.opponentsRatingEarned) * Math.log(team.numMatches)).toFixed(6) + ' '
                + ((team.ratingEarned + 7 * team.opponentsRatingEarned) * Math.log(team.numMatches)).toFixed(6) + ' '
                + ((2 * team.ratingEarned + 7 * team.opponentsRatingEarned) * Math.log(team.numMatches)).toFixed(6) + ' '
+               + colley.getAveragePointsPerMatchInClass(colleyLeague, team.classLevel) + ' '
+               + colley.getAverageRatingEarnedInClass(colleyLeague, team.classLevel) + ' '
                + team.numMatches + '\n'
             );
          });
@@ -444,13 +476,13 @@ document.addEventListener('DOMContentLoaded', function () {
             : seasonWeights === 'cubic8'
             ? createSeasons(fromSeason, toSeason, [1, 8, 27, 64], (x4, x3, x2, x1) => 4 * x1 - 6 * x2 + 4 * x3 - x4)
             : seasonWeights === 'padovan1'
-            ? createSeasons(fromSeason, toSeason, [1, 1, 1], (x3, x2, x1) => x2 + x3)
+            ? createSeasons(fromSeason, toSeason, [1, 1, 1], (x3, x2, ignore) => x2 + x3)
             : seasonWeights === 'padovan2'
-            ? createSeasons(fromSeason, toSeason, [1, 2, 3], (x3, x2, x1) => x2 + x3)
+            ? createSeasons(fromSeason, toSeason, [1, 2, 3], (x3, x2, ignore) => x2 + x3)
             : seasonWeights === 'narayana1'
-            ? createSeasons(fromSeason, toSeason, [1, 1, 1], (x3, x2, x1) => x1 + x3)
+            ? createSeasons(fromSeason, toSeason, [1, 1, 1], (x3, ignore, x1) => x1 + x3)
             : seasonWeights === 'narayana2'
-            ? createSeasons(fromSeason, toSeason, [1, 2, 3], (x3, x2, x1) => x1 + x3)
+            ? createSeasons(fromSeason, toSeason, [1, 2, 3], (x3, ignore, x1) => x1 + x3)
             : seasonWeights === 'fibonacci1'
             ? createSeasons(fromSeason, toSeason, [1, 1], (x2, x1) => x1 + x2)
             : seasonWeights === 'fibonacci2'
@@ -471,8 +503,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
       matchResultsInputElement.addEventListener('dblclick', function () {
          const seasons = [
-            ...createSeasons(firstCountySeason, 1890, [1, 1, 1], (x3, x2, x1) => x2 + x3), // padovan1
-            ...createSeasons(lastCountySeason, 1891, [1], (x2, x1) => 2 * x1 + x2) // pell2
+            ...createSeasons(firstCountySeason, 1890, [1, 1, 1], (x3, x2, ignore) => x2 + x3), // padovan1
+            ...createSeasons(lastCountySeason, 1891, [1], (x1) => 2 * x1) // exponential2
          ];
          addSeasons(seasons);
       });
@@ -498,7 +530,6 @@ document.addEventListener('DOMContentLoaded', function () {
          }());
 
          newColleyLeague = colley.createLeague();
-         const havePlayedEachOther = {};
 
          matchResultsInputElement.value.split('\n').forEach(function (inputLine) {
             const inputTokens = inputLine.replace(/\s+/g, ' ').trim().split(' ');
@@ -511,14 +542,6 @@ document.addEventListener('DOMContentLoaded', function () {
                   ? parseInt(inputTokens[4], 10)
                   : 1
                );
-               if (!Object.hasOwn(havePlayedEachOther, team1)) {
-                  havePlayedEachOther[team1] = {};
-               }
-               havePlayedEachOther[team1][team2] = true;
-               if (!Object.hasOwn(havePlayedEachOther, team2)) {
-                  havePlayedEachOther[team2] = {};
-               }
-               havePlayedEachOther[team2][team1] = true;
                if (Object.hasOwn(pointValues, matchResult)) {
                   newColleyLeague = colley.addMatchResult(
                      newColleyLeague,
@@ -532,19 +555,6 @@ document.addEventListener('DOMContentLoaded', function () {
                   matchResultsInputElement.value = 'invalid match result: ' + inputTokens[1] + '\n' + matchResultsInputElement.value;
                }
             }
-         });
-         Object.keys(havePlayedEachOther).forEach(function (team) {
-            Object.keys(havePlayedEachOther).forEach(function (teamA) {
-               Object.keys(havePlayedEachOther).forEach(function (teamB) {
-                  if (havePlayedEachOther[teamA][team] && havePlayedEachOther[team][teamB]) {
-                     havePlayedEachOther[teamA][teamB] = true;
-                  }
-               });
-            });
-         });
-         matchResultsInputElement.value = '';
-         Object.keys(havePlayedEachOther).toSorted().forEach(function (team) {
-            matchResultsInputElement.value += team + ': ' + Object.keys(havePlayedEachOther[team]).toSorted().join() + '\n';
          });
          return newColleyLeague;
       };
