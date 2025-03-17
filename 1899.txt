@@ -11,7 +11,9 @@ cam D nfk
 cam L dur
 cam L nbl
 cam W hrt
+cnw L dor
 cnw L gla
+dor L cnw
 drb D ess
 drb D lei
 drb D not
@@ -59,6 +61,7 @@ ham L war
 ham L yrk
 ham W sur
 ham W wor
+hef D sal
 hrt D buc
 hrt D nfk
 hrt D nth
@@ -75,7 +78,6 @@ ken W war
 ken W yrk
 lan D ess
 lan D ham
-lan D ken
 lan D mdx
 lan D yrk
 lan L lei
@@ -106,6 +108,7 @@ mdx W sus
 mdx W yrk
 mnm D gla
 mnm L wil
+mtg D sal
 nbl D cam
 nbl D dur
 nbl D nfk
@@ -130,6 +133,8 @@ nth W brk
 oxf D brk
 oxf D buc
 oxf W wil
+sal W hef
+sal W mtg
 som D ken
 som D sur
 som D sus
@@ -180,6 +185,7 @@ wil L brk
 wil L gla
 wil W mnm
 wor D ham
+wor D not
 wor D sus
 wor L war
 wor L yrk
