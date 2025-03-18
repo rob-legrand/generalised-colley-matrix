@@ -5,7 +5,7 @@ import {counties} from '../county-cricket-colours/counties.js';
 document.addEventListener('DOMContentLoaded', function () {
    'use strict';
 
-   const firstCountySeason = 1837;
+   const firstCountySeason = 1835;
    const lastCountySeason = 1903;
    const countySeasons = Array.from(
       {length: lastCountySeason - firstCountySeason + 1},
@@ -264,9 +264,6 @@ document.addEventListener('DOMContentLoaded', function () {
       const barsElement = document.querySelector('#bars');
 
       const updateColleyLeague = function () {
-         const maxMatchesPlayed = Math.max(...colleyLeague.map((team) => colley.getNumMatches(team)));
-         const minRatingEarned = Math.min(...colleyLeague.map((team) => team.ratingEarned));
-         const numMatchesInAdjustment = maxMatchesPlayed / 100;
          const standings = colleyLeague.map(
             (team, whichTeam) => ({
                classLevel: countiesInfo.find((c) => c.countyCode === team.name.toLowerCase())?.classLevel ?? Number.POSITIVE_INFINITY,
@@ -283,6 +280,7 @@ document.addEventListener('DOMContentLoaded', function () {
          ).sort(
             (team1, team2) => (
                team2.adjustedRating - team1.adjustedRating
+               || countiesInfo.findIndex((c) => c.countyCode === team1.name) - countiesInfo.findIndex((c) => c.countyCode === team2.name)
                || team1.classLevel - team2.classLevel
                || team1.name.localeCompare(team2.name)
             )
@@ -303,16 +301,6 @@ document.addEventListener('DOMContentLoaded', function () {
                + team.opponentsRatingConceded.toFixed(6) + ' '
                + team.averagePointsPerMatch.toFixed(6) + ' '
                + team.nextRatingEarned.toFixed(6) + ' '
-               + (team.ratingEarned + team.opponentsRatingEarned).toFixed(6) + ' '
-               + (team.ratingEarned + 7 * team.opponentsRatingEarned).toFixed(6) + ' '
-               + (2 * team.ratingEarned + 7 * team.opponentsRatingEarned).toFixed(6) + ' '
-               + (team.ratingEarned * Math.log(team.numMatches)).toFixed(6) + ' '
-               + (team.opponentsRatingEarned * Math.log(team.numMatches)).toFixed(6) + ' '
-               + ((team.ratingEarned + team.opponentsRatingEarned) * Math.log(team.numMatches)).toFixed(6) + ' '
-               + ((team.ratingEarned + 7 * team.opponentsRatingEarned) * Math.log(team.numMatches)).toFixed(6) + ' '
-               + ((2 * team.ratingEarned + 7 * team.opponentsRatingEarned) * Math.log(team.numMatches)).toFixed(6) + ' '
-               + colley.getAveragePointsPerMatchInClass(colleyLeague, team.classLevel) + ' '
-               + colley.getAverageRatingEarnedInClass(colleyLeague, team.classLevel) + ' '
                + team.numMatches + '\n'
             );
          });
@@ -321,6 +309,13 @@ document.addEventListener('DOMContentLoaded', function () {
             (sumSoFar, team) => sumSoFar + team.ratingEarned,
             0
          ) / standings.length + '\n';
+         colleyOutputElement.value += 'weighted average RE: ' + standings.reduce(
+            (sumSoFar, team) => sumSoFar + team.numMatches * team.ratingEarned,
+            0
+         ) / standings.reduce(
+            (sumSoFar, team) => sumSoFar + team.numMatches,
+            0
+         ) + '\n';
          const bestRating = Math.max(...standings.map((team) => team.adjustedRating));
          const worstRating = Math.min(...standings.map((team) => team.adjustedRating));
          const countiesBars = standings.map(
@@ -501,10 +496,34 @@ document.addEventListener('DOMContentLoaded', function () {
          );
       });
 
+      document.querySelector('#add-implied-matches').addEventListener('click', function () {
+         // for every county A and every county B, if A is one class higher than B, then add 3 wins for A over B and 1 draw
+         // or: for every county A and every county B, if A is a higher class than B, then add 3 wins for A over B and 1 draw
+         const numberOfEachMatchup = 12600;
+         matchResultsInputElement.value += '\n';
+         countiesInfo.filter(
+            (county) => county.classLevel <= 8
+         ).forEach(function (countyA) {
+            countiesInfo.filter(
+               (county) => county.classLevel <= 8
+            ).forEach(function (countyB) {
+//             if (countyA.classLevel + 1 === countyB.classLevel) {
+               if (countyA.classLevel < countyB.classLevel) {
+                  matchResultsInputElement.value += (
+                     countyA.countyCode + ' W ' + countyB.countyCode + ' * ' + numberOfEachMatchup + '\n'
+                     + countyA.countyCode + ' W ' + countyB.countyCode + ' * ' + numberOfEachMatchup + '\n'
+                     + countyA.countyCode + ' W ' + countyB.countyCode + ' * ' + numberOfEachMatchup + '\n'
+                     + countyA.countyCode + ' D ' + countyB.countyCode + ' * ' + numberOfEachMatchup + '\n'
+                  );
+               }
+            });
+         });
+      });
+
       matchResultsInputElement.addEventListener('dblclick', function () {
          const seasons = [
             ...createSeasons(firstCountySeason, 1890, [1, 1, 1], (x3, x2, ignore) => x2 + x3), // padovan1
-            ...createSeasons(lastCountySeason, 1891, [1], (x1) => 2 * x1) // exponential2
+            ...createSeasons(lastCountySeason, 1891, [1], (x1) => 3 * x1) // exponential3
          ];
          addSeasons(seasons);
       });
