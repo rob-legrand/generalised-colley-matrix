@@ -549,6 +549,20 @@ document.addEventListener('DOMContentLoaded', function () {
          }());
 
          newColleyLeague = colley.createLeague();
+         const havePlayedEachOther = {};
+         const howFarFromTopThreeClasses = countiesInfo.reduce(
+            function (soFar, county) {
+               soFar[county.countyCode] = (
+                  county.classLevel <= 3
+                  ? 100
+                  : county.countyCode === 'abd'
+                  ? 300
+                  : 900
+               );
+               return soFar;
+            },
+            {}
+         );
 
          matchResultsInputElement.value.split('\n').forEach(function (inputLine) {
             const inputTokens = inputLine.replace(/\s+/g, ' ').trim().split(' ');
@@ -561,6 +575,14 @@ document.addEventListener('DOMContentLoaded', function () {
                   ? parseInt(inputTokens[4], 10)
                   : 1
                );
+               if (!Object.hasOwn(havePlayedEachOther, team1)) {
+                  havePlayedEachOther[team1] = {};
+               }
+               havePlayedEachOther[team1][team2] = true;
+               if (!Object.hasOwn(havePlayedEachOther, team2)) {
+                  havePlayedEachOther[team2] = {};
+               }
+               havePlayedEachOther[team2][team1] = true;
                if (Object.hasOwn(pointValues, matchResult)) {
                   newColleyLeague = colley.addMatchResult(
                      newColleyLeague,
@@ -574,6 +596,53 @@ document.addEventListener('DOMContentLoaded', function () {
                   matchResultsInputElement.value = 'invalid match result: ' + inputTokens[1] + '\n' + matchResultsInputElement.value;
                }
             }
+         });
+         Object.keys(havePlayedEachOther).forEach(function (team) {
+            Object.keys(havePlayedEachOther).forEach(function (teamA) {
+               Object.keys(havePlayedEachOther).forEach(function (teamB) {
+                  if (havePlayedEachOther[teamA][teamB]) {
+                     if (howFarFromTopThreeClasses[teamA] > howFarFromTopThreeClasses[teamB] + 1) {
+                        howFarFromTopThreeClasses[teamA] = howFarFromTopThreeClasses[teamB] + 1;
+                     }
+                     if (howFarFromTopThreeClasses[teamB] > howFarFromTopThreeClasses[teamA] + 1) {
+                        howFarFromTopThreeClasses[teamB] = howFarFromTopThreeClasses[teamA] + 1;
+                     }
+                  }
+               });
+            });
+         });
+         Object.keys(havePlayedEachOther).forEach(function (team) {
+            Object.keys(havePlayedEachOther).forEach(function (teamA) {
+               Object.keys(havePlayedEachOther).forEach(function (teamB) {
+                  if (havePlayedEachOther[teamA][team] && havePlayedEachOther[team][teamB]) {
+                     havePlayedEachOther[teamA][teamB] = true;
+                  }
+               });
+            });
+         });
+         matchResultsInputElement.value = '';
+         Object.keys(howFarFromTopThreeClasses).forEach(function (team) {
+            matchResultsInputElement.value += howFarFromTopThreeClasses[team] + ' ' + team + '\n';
+         });
+         matchResultsInputElement.value += countiesInfo.map(
+            (county) => county.countyCode
+         ).join() + '\n';
+         matchResultsInputElement.value += countiesInfo.map(
+            (county) => county.countyCode
+         ).filter(
+            (county) => !Object.hasOwn(havePlayedEachOther, county)
+         ).toSorted().join() + '\n';
+         countiesInfo.forEach(function (county) {
+            matchResultsInputElement.value += (
+               !Object.hasOwn(havePlayedEachOther, county.countyCode)
+               ? 'X'
+               : Object.hasOwn(havePlayedEachOther[county.countyCode], 'sus')
+               ? '1'
+               : '2'
+            ) + ' ' + county.countyCode + '\n';
+         });
+         Object.keys(havePlayedEachOther).toSorted().forEach(function (team) {
+            matchResultsInputElement.value += team + ': ' + Object.keys(havePlayedEachOther[team]).toSorted().join() + '\n';
          });
          return newColleyLeague;
       };
