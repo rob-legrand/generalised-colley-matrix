@@ -5,7 +5,7 @@ import {counties} from '../county-cricket-colours/counties.js';
 document.addEventListener('DOMContentLoaded', function () {
    'use strict';
 
-   const firstCountySeason = 1835;
+   const firstCountySeason = 1833;
    const lastCountySeason = 1903;
    const countySeasons = Array.from(
       {length: lastCountySeason - firstCountySeason + 1},
@@ -209,11 +209,13 @@ document.addEventListener('DOMContentLoaded', function () {
             );
             oldLeague.forEach(function (team, whichTeam) {
                const numMatchesPlayed = self.getNumMatches(team);
+               const averagePointsEarnedPerImpliedMatch = (8 - team.classLevel) / 7 * ((0.75 * 9 + 0.25 * -3) - (0.75 * -7 + 0.25 * -3)) + (0.75 * -7 + 0.25 * -3);
+               const averagePointsConcededPerImpliedMatch = (8 - team.classLevel) / 7 * ((0.75 * -7 + 0.25 * -3) - (0.75 * 9 + 0.25 * -3)) + (0.75 * 9 + 0.25 * -3);
                newLeague[whichTeam].effectivePointsEarned = team.actualPointsEarned + strengthOfScheduleFactor * (
                   numMatchesPlayed * averageActualPointsPerMatch - self.getOpponentsTotalRatingsConceded(oldLeague, whichTeam)
                );
                newLeague[whichTeam].ratingEarned = (
-                  laplaceEquivalentMatches * averageActualPointsPerMatch
+                  laplaceEquivalentMatches * averagePointsEarnedPerImpliedMatch
                   + newLeague[whichTeam].effectivePointsEarned
                ) / (
                   laplaceEquivalentMatches
@@ -223,7 +225,7 @@ document.addEventListener('DOMContentLoaded', function () {
                   numMatchesPlayed * averageActualPointsPerMatch - self.getOpponentsTotalRatingsEarned(oldLeague, whichTeam)
                );
                newLeague[whichTeam].ratingConceded = (
-                  laplaceEquivalentMatches * averageActualPointsPerMatch
+                  laplaceEquivalentMatches * averagePointsConcededPerImpliedMatch
                   + newLeague[whichTeam].effectivePointsConceded
                ) / (
                   laplaceEquivalentMatches
@@ -499,7 +501,12 @@ document.addEventListener('DOMContentLoaded', function () {
       document.querySelector('#add-implied-matches').addEventListener('click', function () {
          // for every county A and every county B, if A is one class higher than B, then add 3 wins for A over B and 1 draw
          // or: for every county A and every county B, if A is a higher class than B, then add 3 wins for A over B and 1 draw
-         const numberOfEachMatchup = 12600;
+         const impliedMatchesPerMatchupInput = Number(document.querySelector('#implied-matches-per-matchup').value);
+         const numberOfEachMatchup = (
+            (Number.isInteger(impliedMatchesPerMatchupInput) && impliedMatchesPerMatchupInput > 0)
+            ? impliedMatchesPerMatchupInput
+            : 1
+         );
          matchResultsInputElement.value += '\n';
          countiesInfo.filter(
             (county) => county.classLevel <= 8
@@ -522,8 +529,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
       matchResultsInputElement.addEventListener('dblclick', function () {
          const seasons = [
-            ...createSeasons(firstCountySeason, 1890, [1, 1, 1], (x3, x2, ignore) => x2 + x3), // padovan1
-            ...createSeasons(lastCountySeason, 1891, [1], (x1) => 3 * x1) // exponential3
+            ...createSeasons(1836, 1890, [1, 1, 1], (x3, x2, ignore) => x2 + x3), // padovan1
+            ...createSeasons(1903, 1891, [1], (x1) => 3 * x1) // exponential3
          ];
          addSeasons(seasons);
       });
@@ -549,20 +556,6 @@ document.addEventListener('DOMContentLoaded', function () {
          }());
 
          newColleyLeague = colley.createLeague();
-         const havePlayedEachOther = {};
-         const howFarFromTopThreeClasses = countiesInfo.reduce(
-            function (soFar, county) {
-               soFar[county.countyCode] = (
-                  county.classLevel <= 3
-                  ? 100
-                  : county.countyCode === 'abd'
-                  ? 300
-                  : 900
-               );
-               return soFar;
-            },
-            {}
-         );
 
          matchResultsInputElement.value.split('\n').forEach(function (inputLine) {
             const inputTokens = inputLine.replace(/\s+/g, ' ').trim().split(' ');
@@ -575,14 +568,6 @@ document.addEventListener('DOMContentLoaded', function () {
                   ? parseInt(inputTokens[4], 10)
                   : 1
                );
-               if (!Object.hasOwn(havePlayedEachOther, team1)) {
-                  havePlayedEachOther[team1] = {};
-               }
-               havePlayedEachOther[team1][team2] = true;
-               if (!Object.hasOwn(havePlayedEachOther, team2)) {
-                  havePlayedEachOther[team2] = {};
-               }
-               havePlayedEachOther[team2][team1] = true;
                if (Object.hasOwn(pointValues, matchResult)) {
                   newColleyLeague = colley.addMatchResult(
                      newColleyLeague,
@@ -597,57 +582,16 @@ document.addEventListener('DOMContentLoaded', function () {
                }
             }
          });
-         Object.keys(havePlayedEachOther).forEach(function (team) {
-            Object.keys(havePlayedEachOther).forEach(function (teamA) {
-               Object.keys(havePlayedEachOther).forEach(function (teamB) {
-                  if (havePlayedEachOther[teamA][teamB]) {
-                     if (howFarFromTopThreeClasses[teamA] > howFarFromTopThreeClasses[teamB] + 1) {
-                        howFarFromTopThreeClasses[teamA] = howFarFromTopThreeClasses[teamB] + 1;
-                     }
-                     if (howFarFromTopThreeClasses[teamB] > howFarFromTopThreeClasses[teamA] + 1) {
-                        howFarFromTopThreeClasses[teamB] = howFarFromTopThreeClasses[teamA] + 1;
-                     }
-                  }
-               });
-            });
-         });
-         Object.keys(havePlayedEachOther).forEach(function (team) {
-            Object.keys(havePlayedEachOther).forEach(function (teamA) {
-               Object.keys(havePlayedEachOther).forEach(function (teamB) {
-                  if (havePlayedEachOther[teamA][team] && havePlayedEachOther[team][teamB]) {
-                     havePlayedEachOther[teamA][teamB] = true;
-                  }
-               });
-            });
-         });
-         matchResultsInputElement.value = '';
-         Object.keys(howFarFromTopThreeClasses).forEach(function (team) {
-            matchResultsInputElement.value += howFarFromTopThreeClasses[team] + ' ' + team + '\n';
-         });
-         matchResultsInputElement.value += countiesInfo.map(
-            (county) => county.countyCode
-         ).join() + '\n';
-         matchResultsInputElement.value += countiesInfo.map(
-            (county) => county.countyCode
-         ).filter(
-            (county) => !Object.hasOwn(havePlayedEachOther, county)
-         ).toSorted().join() + '\n';
-         countiesInfo.forEach(function (county) {
-            matchResultsInputElement.value += (
-               !Object.hasOwn(havePlayedEachOther, county.countyCode)
-               ? 'X'
-               : Object.hasOwn(havePlayedEachOther[county.countyCode], 'sus')
-               ? '1'
-               : '2'
-            ) + ' ' + county.countyCode + '\n';
-         });
-         Object.keys(havePlayedEachOther).toSorted().forEach(function (team) {
-            matchResultsInputElement.value += team + ': ' + Object.keys(havePlayedEachOther[team]).toSorted().join() + '\n';
-         });
          return newColleyLeague;
       };
 
       document.querySelector('#iterate-colley-once').addEventListener('click', function () {
+         const laplaceEquivalentMatchesInput = Number(document.querySelector('#laplace-equivalent-matches').value);
+         colleyOptions.laplaceEquivalentMatches = (
+            Number.isFinite(laplaceEquivalentMatchesInput)
+            ? laplaceEquivalentMatchesInput
+            : 'avgMatchesPlayed'
+         );
          colleyLeague = colley.iterateRatings(
             (
                colleyLeague?.length > 0
@@ -660,6 +604,12 @@ document.addEventListener('DOMContentLoaded', function () {
       });
 
       document.querySelector('#get-colley-ratings').addEventListener('click', function () {
+         const laplaceEquivalentMatchesInput = Number(document.querySelector('#laplace-equivalent-matches').value);
+         colleyOptions.laplaceEquivalentMatches = (
+            Number.isFinite(laplaceEquivalentMatchesInput)
+            ? laplaceEquivalentMatchesInput
+            : 'avgMatchesPlayed'
+         );
          colleyLeague = colley.iterateRatings(getLeagueInput());
          (function keepIterating(numIterationsDone) {
             numIterationsDone += 1;

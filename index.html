@@ -73,6 +73,9 @@
 </div>
 
 <div>
+   <label>Implied matches per matchup:&nbsp;
+      <input id="implied-matches-per-matchup" type="number" value="1" />
+   </label>&nbsp;
    <button id="add-implied-matches" type="button">Add matches implied by class</button>
 </div>
 
@@ -81,7 +84,7 @@
 </div>
 
 <div>
-   <label>Point values:&nbsp;<select id="point-values">
+   <label>Point values:&nbsp; <select id="point-values">
       <option selected="selected" value="9,1,-3,-7">W 9, T 1, D -3, L -7</option>
       <option value="3,1,0,-1">W 3, T 1, D 0, L -1</option>
       <option value="4,2,1,0">W 4, T 2, D 1, L 0</option>
@@ -92,7 +95,23 @@
       <option value="1,1,-3,1">W 1, T 1, D -3, L 1</option>
       <option value="1,1,0,1">W 1, T 1, D 0, L 1</option>
       <option value="1,1,1,1">W 1, T 1, D 1, L 1</option>
-   </select></label>&nbsp;
+   </select></label>
+</div>
+
+<div>
+   <label>Laplace-adjustment equivalent matches:&nbsp;
+      <input id="laplace-equivalent-matches" type="number" value="1" />
+   </label>
+</div>
+
+<div>
+   <label>
+      <input id="laplace-by-class" type="checkbox" />
+      Use class-informed Laplace adjustment
+   </label>
+</div>
+
+<div>
    <button id="iterate-colley-once" type="button">Iterate Colley once</button>
    <button id="get-colley-ratings" type="button">Get Colley ratings</button>
 </div>
