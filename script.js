@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function () {
    'use strict';
 
    const firstCountySeason = 1833;
-   const lastCountySeason = 1903;
+   const lastCountySeason = 1904;
    const countySeasons = Array.from(
       {length: lastCountySeason - firstCountySeason + 1},
       (ignore, whichSeason) => whichSeason + firstCountySeason
@@ -51,10 +51,9 @@ document.addEventListener('DOMContentLoaded', function () {
             if (league.map((team) => team.name).includes(teamName)) {
                return league;
             }
-            const county = countiesInfo.find((c) => c.countyCode === teamName);
             league.push({
                name: teamName,
-               classLevel: county?.classLevel,
+               classLevel: countiesInfo.find((c) => c.countyCode === teamName.toLowerCase())?.classLevel ?? Number.POSITIVE_INFINITY,
                numMatchesVersus: [],
                actualPointsEarned: 0,
                actualPointsConceded: 0
@@ -77,7 +76,9 @@ document.addEventListener('DOMContentLoaded', function () {
                effectivePointsEarned: oldTeam.effectivePointsEarned,
                effectivePointsConceded: oldTeam.effectivePointsConceded,
                ratingEarned: oldTeam.ratingEarned,
-               ratingConceded: oldTeam.ratingConceded
+               ratingConceded: oldTeam.ratingConceded,
+               averagePointsEarnedForLaplace: oldTeam.averagePointsEarnedForLaplace,
+               averagePointsConcededForLaplace: oldTeam.averagePointsConcededForLaplace
             }))
             : []
          ),
@@ -124,50 +125,35 @@ document.addEventListener('DOMContentLoaded', function () {
             return util.deepCopy(Object.freeze, league);
          },
          createLeague: (oldLeague) => util.deepCopy(Object.freeze, util.createUnfrozenLeague(oldLeague)),
-         getAveragePointsPerMatch: (leagueOrTeam) => (
-            Array.isArray(leagueOrTeam)
-            ? leagueOrTeam.reduce(
-               (numPointsSoFar, team) => numPointsSoFar + team.actualPointsEarned,
-               0
-            ) / self.getNumMatches(leagueOrTeam)
-            : leagueOrTeam.actualPointsEarned / self.getNumMatches(leagueOrTeam)
-         ),
-         getAveragePointsPerMatchInClass: (leagueOrTeam, classLevel) => (
-            Array.isArray(leagueOrTeam)
-            ? leagueOrTeam.filter(
-               (team) => team.classLevel === classLevel
-            ).reduce(
-               (numPointsSoFar, team) => numPointsSoFar + team.actualPointsEarned,
-               0
-            ) / self.getNumMatches(
-               leagueOrTeam.filter(
-                  (team) => team.classLevel === classLevel
-               )
-            )
-            : leagueOrTeam.actualPointsEarned / self.getNumMatches(leagueOrTeam)
-         ),
+         fillInAveragePointsPerMatch: function (oldLeague) {
+            const newLeague = util.createUnfrozenLeague(oldLeague);
+            const averageActualPointsPerMatch = self.getAveragePointsPerMatch(oldLeague);
+            newLeague.forEach(function (team) {
+               team.averagePointsEarnedForLaplace = averageActualPointsPerMatch;
+               team.averagePointsConcededForLaplace = averageActualPointsPerMatch;
+            });
+            return util.deepCopy(Object.freeze, newLeague);
+         },
+         getAveragePointsConcededPerMatch: (team) => team.actualPointsConceded / self.getNumMatches(team),
+         getAveragePointsEarnedPerMatch: (team) => team.actualPointsEarned / self.getNumMatches(team),
+         getAveragePointsPerMatch: (league) => league.reduce(
+            (numPointsSoFar, team) => numPointsSoFar + team.actualPointsEarned,
+            0
+         ) / self.getNumMatches(league),
          getAverageRatingEarned: (league) => league.reduce(
             (totalRatingEarnedSoFar, team) => totalRatingEarnedSoFar + team.ratingEarned,
             0
          ) / league.length,
-         getAverageRatingEarnedInClass: (league, classLevel) => league.filter(
-            (team) => team.classLevel === classLevel
-         ).reduce(
-            (totalRatingEarnedSoFar, team) => totalRatingEarnedSoFar + team.ratingEarned,
-            0
-         ) / league.filter(
-            (team) => team.classLevel === classLevel
-         ).length,
-         getLowestRatingEarnedInClass: (league, classLevel) => league.filter(
-            (team) => team.classLevel === classLevel
-         ).reduce(
-            (totalRatingEarnedSoFar, team) => Math.min(totalRatingEarnedSoFar, team.ratingEarned),
-            Number.POSITIVE_INFINITY
-         ),
          getNumMatches: (leagueOrTeam) => (
             Array.isArray(leagueOrTeam)
-            ? leagueOrTeam.reduce((numMatchesSoFar, team) => numMatchesSoFar + self.getNumMatches(team), 0)
-            : leagueOrTeam.numMatchesVersus.reduce((numMatchesSoFar, timesPlayed) => numMatchesSoFar + timesPlayed, 0)
+            ? leagueOrTeam.reduce(
+               (numMatchesSoFar, team) => numMatchesSoFar + self.getNumMatches(team),
+               0
+            )
+            : leagueOrTeam.numMatchesVersus.reduce(
+               (numMatchesSoFar, timesPlayed) => numMatchesSoFar + timesPlayed,
+               0
+            )
          ),
          getOpponentsTotalRatingsConceded: (league, whichTeam) => league[whichTeam].numMatchesVersus.reduce(
             (effectivePointsSoFar, timesPlayed, whichOpponent) => effectivePointsSoFar + timesPlayed * (
@@ -196,7 +182,10 @@ document.addEventListener('DOMContentLoaded', function () {
                ? options.strengthOfScheduleFactor
                : 1 // Colley's default was 1; should be nonnegative and maybe no more than 1
             );
-            const avgMatchesPlayed = oldLeague.reduce((sum, team) => sum + self.getNumMatches(team), 0) / oldLeague.length;
+            const avgMatchesPlayed = oldLeague.reduce(
+               (sum, team) => sum + self.getNumMatches(team),
+               0
+            ) / oldLeague.length;
             const laplaceEquivalentMatches = (
                (
                   Number.isFinite(options?.laplaceEquivalentMatches)
@@ -209,13 +198,11 @@ document.addEventListener('DOMContentLoaded', function () {
             );
             oldLeague.forEach(function (team, whichTeam) {
                const numMatchesPlayed = self.getNumMatches(team);
-               const averagePointsEarnedPerImpliedMatch = (8 - team.classLevel) / 7 * ((0.75 * 9 + 0.25 * -3) - (0.75 * -7 + 0.25 * -3)) + (0.75 * -7 + 0.25 * -3);
-               const averagePointsConcededPerImpliedMatch = (8 - team.classLevel) / 7 * ((0.75 * -7 + 0.25 * -3) - (0.75 * 9 + 0.25 * -3)) + (0.75 * 9 + 0.25 * -3);
                newLeague[whichTeam].effectivePointsEarned = team.actualPointsEarned + strengthOfScheduleFactor * (
                   numMatchesPlayed * averageActualPointsPerMatch - self.getOpponentsTotalRatingsConceded(oldLeague, whichTeam)
                );
                newLeague[whichTeam].ratingEarned = (
-                  laplaceEquivalentMatches * averagePointsEarnedPerImpliedMatch
+                  laplaceEquivalentMatches * team.averagePointsEarnedForLaplace
                   + newLeague[whichTeam].effectivePointsEarned
                ) / (
                   laplaceEquivalentMatches
@@ -225,7 +212,7 @@ document.addEventListener('DOMContentLoaded', function () {
                   numMatchesPlayed * averageActualPointsPerMatch - self.getOpponentsTotalRatingsEarned(oldLeague, whichTeam)
                );
                newLeague[whichTeam].ratingConceded = (
-                  laplaceEquivalentMatches * averagePointsConcededPerImpliedMatch
+                  laplaceEquivalentMatches * team.averagePointsConcededForLaplace
                   + newLeague[whichTeam].effectivePointsConceded
                ) / (
                   laplaceEquivalentMatches
@@ -242,6 +229,55 @@ document.addEventListener('DOMContentLoaded', function () {
             const averageRatingDeficit = self.getAveragePointsPerMatch(oldLeague) - self.getAverageRatingEarned(oldLeague);
             newLeague.forEach(function (team) {
                team.ratingEarned += averageRatingDeficit;
+            });
+            return util.deepCopy(Object.freeze, newLeague);
+         },
+         simulateImpliedMatches: function (oldLeague, pointValues) {
+            const newLeague = util.createUnfrozenLeague(oldLeague);
+            const drawProportion = (
+               pointValues.t.forTeam1 !== pointValues.d.forTeam1
+               ? (
+                  pointValues.t.forTeam1 - colley.getAveragePointsPerMatch(newLeague)
+               ) / (
+                  pointValues.t.forTeam1 - pointValues.d.forTeam1
+               )
+               : 0.25
+            );
+            const averageActualPointsPerMatch = self.getAveragePointsPerMatch(oldLeague);
+            newLeague.forEach(function (team) {
+               const impliedOpponents = newLeague.filter(
+                  (otherTeam) => otherTeam.classLevel !== team.classLevel
+               );
+               team.averagePointsEarnedForLaplace = (
+                  impliedOpponents.length > 0
+                  ? impliedOpponents.map(
+                     (otherTeam) => (1 - drawProportion) * pointValues[
+                        team.classLevel < otherTeam.classLevel
+                        ? 'w'
+                        : team.classLevel > otherTeam.classLevel
+                        ? 'l'
+                        : 't'
+                     ].forTeam1 + drawProportion * pointValues.d.forTeam1
+                  ).reduce(
+                     (numPointsSoFar, points) => numPointsSoFar + points
+                  ) / impliedOpponents.length
+                  : averageActualPointsPerMatch
+               );
+               team.averagePointsConcededForLaplace = (
+                  impliedOpponents.length > 0
+                  ? impliedOpponents.map(
+                     (otherTeam) => (1 - drawProportion) * pointValues[
+                        team.classLevel < otherTeam.classLevel
+                        ? 'w'
+                        : team.classLevel > otherTeam.classLevel
+                        ? 'l'
+                        : 't'
+                     ].forTeam2 + drawProportion * pointValues.d.forTeam2
+                  ).reduce(
+                     (numPointsSoFar, points) => numPointsSoFar + points
+                  ) / impliedOpponents.length
+                  : averageActualPointsPerMatch
+               );
             });
             return util.deepCopy(Object.freeze, newLeague);
          },
@@ -268,7 +304,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const updateColleyLeague = function () {
          const standings = colleyLeague.map(
             (team, whichTeam) => ({
-               classLevel: countiesInfo.find((c) => c.countyCode === team.name.toLowerCase())?.classLevel ?? Number.POSITIVE_INFINITY,
+               classLevel: team.classLevel,
                name: team.name,
                adjustedRating: team.ratingEarned,
                ratingEarned: team.ratingEarned,
@@ -276,7 +312,10 @@ document.addEventListener('DOMContentLoaded', function () {
                ratingConceded: team.ratingConceded,
                opponentsRatingEarned: colley.getOpponentsTotalRatingsEarned(colleyLeague, whichTeam) / colley.getNumMatches(team),
                opponentsRatingConceded: colley.getOpponentsTotalRatingsConceded(colleyLeague, whichTeam) / colley.getNumMatches(team),
-               averagePointsPerMatch: colley.getAveragePointsPerMatch(team),
+               averagePointsEarnedPerMatch: colley.getAveragePointsEarnedPerMatch(team),
+               averagePointsConcededPerMatch: colley.getAveragePointsConcededPerMatch(team),
+               averagePointsEarnedForLaplace: team.averagePointsEarnedForLaplace,
+               averagePointsConcededForLaplace: team.averagePointsConcededForLaplace,
                numMatches: colley.getNumMatches(team)
             })
          ).sort(
@@ -301,8 +340,11 @@ document.addEventListener('DOMContentLoaded', function () {
                + team.ratingConceded?.toFixed(6) + ' '
                + team.opponentsRatingEarned.toFixed(6) + ' '
                + team.opponentsRatingConceded.toFixed(6) + ' '
-               + team.averagePointsPerMatch.toFixed(6) + ' '
-               + team.nextRatingEarned.toFixed(6) + ' '
+               + team.averagePointsEarnedPerMatch.toFixed(6) + ' '
+               + team.averagePointsConcededPerMatch.toFixed(6) + ' '
+               + team.averagePointsEarnedForLaplace?.toFixed(6) + ' '
+               + team.averagePointsConcededForLaplace?.toFixed(6) + ' '
+               + team.nextRatingEarned?.toFixed(6) + ' '
                + team.numMatches + '\n'
             );
          });
@@ -484,6 +526,12 @@ document.addEventListener('DOMContentLoaded', function () {
             ? createSeasons(fromSeason, toSeason, [1, 1], (x2, x1) => x1 + x2)
             : seasonWeights === 'fibonacci2'
             ? createSeasons(fromSeason, toSeason, [1, 2], (x2, x1) => x1 + x2)
+            : seasonWeights === 'tribonacci1'
+            ? createSeasons(fromSeason, toSeason, [1, 1, 1], (x3, x2, x1) => x1 + x2 + x3)
+            : seasonWeights === 'tribonacci2'
+            ? createSeasons(fromSeason, toSeason, [1, 1, 2], (x3, x2, x1) => x1 + x2 + x3)
+            : seasonWeights === 'tribonacci3'
+            ? createSeasons(fromSeason, toSeason, [1, 2, 3], (x3, x2, x1) => x1 + x2 + x3)
             : seasonWeights === 'jacobsthal'
             ? createSeasons(fromSeason, toSeason, [1, 1], (x2, x1) => x1 + 2 * x2)
             : seasonWeights === 'exponential2'
@@ -492,6 +540,10 @@ document.addEventListener('DOMContentLoaded', function () {
             ? createSeasons(fromSeason, toSeason, [1, 1], (x2, x1) => 2 * x1 + x2)
             : seasonWeights === 'pell2'
             ? createSeasons(fromSeason, toSeason, [1, 2], (x2, x1) => 2 * x1 + x2)
+            : seasonWeights === 'tripell'
+            ? createSeasons(fromSeason, toSeason, [1, 2, 5], (x3, x2, x1) => 2 * x1 + x2 + x3)
+            : seasonWeights === 'doublonacci'
+            ? createSeasons(fromSeason, toSeason, [1, 2], (x2, x1) => 2 * x1 + 2 * x2)
             : seasonWeights === 'exponential3'
             ? createSeasons(fromSeason, toSeason, [1], (x1) => 3 * x1)
             : createSeasons(fromSeason, toSeason, [], () => 1)
@@ -530,7 +582,7 @@ document.addEventListener('DOMContentLoaded', function () {
       matchResultsInputElement.addEventListener('dblclick', function () {
          const seasons = [
             ...createSeasons(1836, 1890, [1, 1, 1], (x3, x2, ignore) => x2 + x3), // padovan1
-            ...createSeasons(1903, 1891, [1], (x1) => 3 * x1) // exponential3
+            ...createSeasons(1904, 1891, [1, 2], (x2, x1) => 2 * x1 + x2) // pell2
          ];
          addSeasons(seasons);
       });
@@ -542,16 +594,15 @@ document.addEventListener('DOMContentLoaded', function () {
             const pointValuesSelect = document.querySelector('#point-values');
             const resultPoints = pointValuesSelect.options[
                pointValuesSelect.selectedIndex
-            ].value.split(',').map(
-               (resultPoint) => Number(resultPoint)
-            );
+            ].value.split(',').map(Number);
+            resultPoints[1] = (resultPoints[0] + resultPoints[3]) / 2;
             return {
-               w: [resultPoints[0], resultPoints[3]],
-               td: [resultPoints[1], resultPoints[2]],
-               t: [resultPoints[1], resultPoints[1]],
-               d: [resultPoints[2], resultPoints[2]],
-               dt: [resultPoints[2], resultPoints[1]],
-               l: [resultPoints[3], resultPoints[0]]
+               w: {forTeam1: resultPoints[0], forTeam2: resultPoints[3]},
+               td: {forTeam1: resultPoints[1], forTeam2: resultPoints[2]},
+               t: {forTeam1: resultPoints[1], forTeam2: resultPoints[1]},
+               d: {forTeam1: resultPoints[2], forTeam2: resultPoints[2]},
+               dt: {forTeam1: resultPoints[2], forTeam2: resultPoints[1]},
+               l: {forTeam1: resultPoints[3], forTeam2: resultPoints[0]}
             };
          }());
 
@@ -572,9 +623,9 @@ document.addEventListener('DOMContentLoaded', function () {
                   newColleyLeague = colley.addMatchResult(
                      newColleyLeague,
                      team1,
-                     pointValues[matchResult][0],
+                     pointValues[matchResult].forTeam1,
                      team2,
-                     pointValues[matchResult][1],
+                     pointValues[matchResult].forTeam2,
                      weight
                   );
                } else {
@@ -582,7 +633,12 @@ document.addEventListener('DOMContentLoaded', function () {
                }
             }
          });
-         return newColleyLeague;
+
+         return (
+            document.querySelector('#laplace-by-class').checked
+            ? colley.simulateImpliedMatches(newColleyLeague, pointValues)
+            : colley.fillInAveragePointsPerMatch(newColleyLeague)
+         );
       };
 
       document.querySelector('#iterate-colley-once').addEventListener('click', function () {
