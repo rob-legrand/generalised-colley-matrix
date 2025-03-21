@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function () {
    'use strict';
 
    const firstCountySeason = 1833;
-   const lastCountySeason = 1904;
+   const lastCountySeason = 1907;
    const countySeasons = Array.from(
       {length: lastCountySeason - firstCountySeason + 1},
       (ignore, whichSeason) => whichSeason + firstCountySeason
@@ -582,7 +582,7 @@ document.addEventListener('DOMContentLoaded', function () {
       matchResultsInputElement.addEventListener('dblclick', function () {
          const seasons = [
             ...createSeasons(1836, 1890, [1, 1, 1], (x3, x2, ignore) => x2 + x3), // padovan1
-            ...createSeasons(1904, 1891, [1, 2], (x2, x1) => 2 * x1 + x2) // pell2
+            ...createSeasons(1907, 1891, [1], (x1) => 2 * x1) // exponential2
          ];
          addSeasons(seasons);
       });
