@@ -1,6 +1,6 @@
 /*jslint browser */
 
-import {counties} from '../county-cricket-colours/counties.js';
+import {counties} from '/county-cricket-colours/counties.js';
 
 document.addEventListener('DOMContentLoaded', function () {
    'use strict';
