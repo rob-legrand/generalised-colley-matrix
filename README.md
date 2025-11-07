@@ -2,7 +2,8 @@
 An implementation of the [Colley matrix](https://www.colleyrankings.com/method.html),
 meant to rate sports teams based on match results,
 generalised to handle draws in addition to wins and losses.&nbsp;
-Draws can be worth more or less than half of a win, allowing non-zero-sum games.&nbsp;
+Draws can be worth more or less than half of a win,
+allowing for non-zero-sum games.&nbsp;
 I created this app to estimate relative strengths of 19th-century county cricket clubs,
 but it can be used with any match data.&nbsp;
 Try it:&nbsp; <https://rob-legrand.github.io/cm/>
