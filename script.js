@@ -389,10 +389,10 @@ document.addEventListener('DOMContentLoaded', function () {
                const newCountyNameDiv = document.createElement('div');
                newCountyNameDiv.classList.add('county-name');
                newCountyNameDiv.textContent = (whichPlace + 1) + '. ' + county.countyName;
-               const newCodeDiv = counties.createCountyElement(county);
+               const newCodeDiv = counties.createCountyElement(county, {
+                  classList: ['county-code', 'county-colour-name']
+               });
                newCodeDiv.textContent = county.countyCode.toUpperCase();
-               newCodeDiv.classList.add('county-code');
-               newCodeDiv.classList.add('county-colour-name');
                const newClassDiv = document.createElement('div');
                newClassDiv.textContent = county.classLevel ?? '-';
                newDiv.replaceChildren(
