@@ -53,7 +53,9 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             league.push({
                name: teamName,
-               classLevel: countiesInfo.find((c) => c.countyCode === teamName.toLowerCase())?.classLevel ?? Number.POSITIVE_INFINITY,
+               classLevel: countiesInfo.find(
+                  (c) => c.countyCode === teamName.toLowerCase()
+               )?.classLevel ?? Number.POSITIVE_INFINITY,
                numMatchesVersus: [],
                actualPointsEarned: 0,
                actualPointsConceded: 0
@@ -321,7 +323,11 @@ document.addEventListener('DOMContentLoaded', function () {
          ).sort(
             (team1, team2) => (
                team2.adjustedRating - team1.adjustedRating
-               || countiesInfo.findIndex((c) => c.countyCode === team1.name) - countiesInfo.findIndex((c) => c.countyCode === team2.name)
+               || countiesInfo.findIndex(
+                  (c) => c.countyCode === team1.name
+               ) - countiesInfo.findIndex(
+                  (c) => c.countyCode === team2.name
+               )
                || team1.classLevel - team2.classLevel
                || team1.name.localeCompare(team2.name)
             )
@@ -374,7 +380,9 @@ document.addEventListener('DOMContentLoaded', function () {
          );
          barsElement.replaceChildren(...countiesBars.map(function (countyBar, whichPlace) {
             const newDiv = document.createElement('div');
-            const county = countiesInfo.find((c) => c.countyCode === countyBar.countyCode);
+            const county = countiesInfo.find(
+               (c) => c.countyCode === countyBar.countyCode
+            );
             if (county !== undefined) {
                newDiv.title = (whichPlace + 1) + '. ' + county.countyName;
                newDiv.classList.add('county-bar');
