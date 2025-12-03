@@ -390,9 +390,9 @@ document.addEventListener('DOMContentLoaded', function () {
                newCountyNameDiv.classList.add('county-name');
                newCountyNameDiv.textContent = (whichPlace + 1) + '. ' + county.countyName;
                const newCodeDiv = counties.createCountyElement(county, {
-                  classList: ['county-code', 'county-colour-name']
+                  classList: ['county-code', 'county-colour-name'],
+                  textContent: county.countyCode.toUpperCase()
                });
-               newCodeDiv.textContent = county.countyCode.toUpperCase();
                const newClassDiv = document.createElement('div');
                newClassDiv.textContent = county.classLevel ?? '-';
                newDiv.replaceChildren(
