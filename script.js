@@ -390,6 +390,7 @@ document.addEventListener('DOMContentLoaded', function () {
                newCountyNameDiv.classList.add('county-name');
                newCountyNameDiv.textContent = (whichPlace + 1) + '. ' + county.countyName;
                const newCodeDiv = counties.createCountyElement(county, {
+                  county: county,
                   classList: ['county-code', 'county-colour-name'],
                   textContent: county.countyCode.toUpperCase()
                });
