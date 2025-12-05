@@ -393,10 +393,6 @@ document.addEventListener('DOMContentLoaded', function () {
                   county: county,
                   classList: ['county-code', 'county-colour-name'],
                   textContent: county.countyCode.toUpperCase()
-               }, {
-                  county: county,
-                  classList: ['county-code', 'county-colour-name'],
-                  textContent: county.countyCode.toUpperCase()
                });
                const newClassDiv = document.createElement('div');
                newClassDiv.textContent = county.classLevel ?? '-';
