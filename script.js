@@ -102,10 +102,15 @@ document.addEventListener('DOMContentLoaded', function () {
       });
 
       const self = Object.freeze({
-         addMatchResult: function (league, teamName1, points1, teamName2, points2, weight = 1) {
-            if (!Number.isFinite(points1) || !Number.isFinite(points2) || !Number.isFinite(weight)) {
+         addMatchResult: function (league, teamName1, points1, teamName2, points2, weight) {
+            if (!Number.isFinite(points1) || !Number.isFinite(points2)) {
                return;
             }
+            weight = (
+               (Number.isFinite(weight) && weight > 0)
+               ? weight
+               : 1
+            );
             league = util.addTeam(
                util.addTeam(
                   league,
@@ -623,9 +628,14 @@ document.addEventListener('DOMContentLoaded', function () {
                const team1 = inputTokens[0];
                const matchResult = inputTokens[1].toLowerCase();
                const team2 = inputTokens[2];
+               const inputWeight = (
+                  (inputTokens.length >= 5 && inputTokens[3] === '*')
+                  ? Number(inputTokens[4])
+                  : 1
+               );
                const weight = (
-                  (inputTokens.length >= 5 && inputTokens[3] === '*' && Number.isFinite(parseInt(inputTokens[4], 10)))
-                  ? parseInt(inputTokens[4], 10)
+                  Number.isFinite(inputWeight)
+                  ? inputWeight
                   : 1
                );
                if (Object.hasOwn(pointValues, matchResult)) {
