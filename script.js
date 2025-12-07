@@ -568,8 +568,8 @@ document.addEventListener('DOMContentLoaded', function () {
          // for every county A and every county B, if A is one class higher than B, then add 3 wins for A over B and 1 draw
          // or: for every county A and every county B, if A is a higher class than B, then add 3 wins for A over B and 1 draw
          const impliedMatchesPerMatchupInput = Number(document.querySelector('#implied-matches-per-matchup').value);
-         const numberOfEachMatchup = (
-            (Number.isInteger(impliedMatchesPerMatchupInput) && impliedMatchesPerMatchupInput > 0)
+         const weightOfEachMatchup = (
+            (Number.isFinite(impliedMatchesPerMatchupInput) && impliedMatchesPerMatchupInput > 0)
             ? impliedMatchesPerMatchupInput
             : 1
          );
@@ -583,10 +583,10 @@ document.addEventListener('DOMContentLoaded', function () {
 //             if (countyA.classLevel + 1 === countyB.classLevel) {
                if (countyA.classLevel < countyB.classLevel) {
                   matchResultsInputElement.value += (
-                     countyA.countyCode + ' W ' + countyB.countyCode + ' * ' + numberOfEachMatchup + '\n'
-                     + countyA.countyCode + ' W ' + countyB.countyCode + ' * ' + numberOfEachMatchup + '\n'
-                     + countyA.countyCode + ' W ' + countyB.countyCode + ' * ' + numberOfEachMatchup + '\n'
-                     + countyA.countyCode + ' D ' + countyB.countyCode + ' * ' + numberOfEachMatchup + '\n'
+                     countyA.countyCode + ' W ' + countyB.countyCode + ' * ' + weightOfEachMatchup + '\n'
+                     + countyA.countyCode + ' W ' + countyB.countyCode + ' * ' + weightOfEachMatchup + '\n'
+                     + countyA.countyCode + ' W ' + countyB.countyCode + ' * ' + weightOfEachMatchup + '\n'
+                     + countyA.countyCode + ' D ' + countyB.countyCode + ' * ' + weightOfEachMatchup + '\n'
                   );
                }
             });
