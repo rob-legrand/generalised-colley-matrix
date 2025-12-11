@@ -391,9 +391,10 @@ document.addEventListener('DOMContentLoaded', function () {
             if (county !== undefined) {
                newDiv.title = (whichPlace + 1) + '. ' + county.countyName;
                newDiv.classList.add('county-bar');
-               const newCountyNameDiv = document.createElement('div');
-               newCountyNameDiv.classList.add('county-name');
-               newCountyNameDiv.textContent = (whichPlace + 1) + '. ' + county.countyName;
+               const newCountyNameDiv = counties.createCountyElement({
+                  classList: ['county-name'],
+                  textContent: (whichPlace + 1) + '. ' + county.countyName
+               });
                const newCodeDiv = counties.createCountyElement({
                   county: county,
                   classList: ['county-code', 'county-colour-name'],
