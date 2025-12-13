@@ -401,7 +401,9 @@ document.addEventListener('DOMContentLoaded', function () {
                   textContent: county.countyCode.toUpperCase()
                });
                const newClassDiv = counties.createCountyElement({
-                  textContent: county.classLevel ?? '-'
+                  county: county,
+                  textType: 'classLevel',
+                  colourStyle: 'none'
                });
                newDiv.replaceChildren(
                   newCountyNameDiv,
