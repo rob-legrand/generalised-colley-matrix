@@ -400,8 +400,9 @@ document.addEventListener('DOMContentLoaded', function () {
                   classList: ['county-code', 'county-colour-name'],
                   textContent: county.countyCode.toUpperCase()
                });
-               const newClassDiv = document.createElement('div');
-               newClassDiv.textContent = county.classLevel ?? '-';
+               const newClassDiv = counties.createCountyElement({
+                  textContent: county.classLevel ?? '-'
+               });
                newDiv.replaceChildren(
                   newCountyNameDiv,
                   counties.createCanvas({
