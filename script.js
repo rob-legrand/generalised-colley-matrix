@@ -13,31 +13,34 @@ document.addEventListener('DOMContentLoaded', function () {
    );
 
    document.querySelector('#add-matches').replaceChildren(
-      ...countySeasons.map(function (countySeason) {
-         const newButton = document.createElement('button');
-         newButton.setAttribute('type', 'button');
-         newButton.textContent = countySeason;
-         return newButton;
-      })
+      ...countySeasons.map(
+         (countySeason) => counties.createCountyElement({
+            elementType: 'button',
+            attributes: {type: 'button'},
+            textContent: countySeason
+         })
+      )
    );
 
    document.querySelector('#from-season').replaceChildren(
-      ...countySeasons.map(function (countySeason) {
-         const newFromOption = document.createElement('option');
-         newFromOption.setAttribute('value', countySeason.toString());
-         newFromOption.textContent = countySeason;
-         return newFromOption;
-      })
+      ...countySeasons.map(
+         (countySeason) => counties.createCountyElement({
+            elementType: 'option',
+            attributes: {value: countySeason},
+            textContent: countySeason
+         })
+      )
    );
    document.querySelector('#from-season :first-child').setAttribute('selected', 'selected');
 
    document.querySelector('#to-season').replaceChildren(
-      ...countySeasons.map(function (countySeason) {
-         const newToOption = document.createElement('option');
-         newToOption.setAttribute('value', countySeason.toString());
-         newToOption.textContent = countySeason;
-         return newToOption;
-      })
+      ...countySeasons.map(
+         (countySeason) => counties.createCountyElement({
+            elementType: 'option',
+            attributes: {value: countySeason},
+            textContent: countySeason
+         })
+      )
    );
    document.querySelector('#to-season :last-child').setAttribute('selected', 'selected');
 
