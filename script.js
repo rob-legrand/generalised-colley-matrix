@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function () {
          (countySeason) => counties.createCountyElement({
             elementType: 'button',
             attributes: {type: 'button'},
-            textContent: countySeason
+            children: [countySeason]
          })
       )
    );
@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', function () {
          (countySeason) => counties.createCountyElement({
             elementType: 'option',
             attributes: {value: countySeason},
-            textContent: countySeason
+            children: [countySeason]
          })
       )
    );
@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function () {
          (countySeason) => counties.createCountyElement({
             elementType: 'option',
             attributes: {value: countySeason},
-            textContent: countySeason
+            children: [countySeason]
          })
       )
    );
