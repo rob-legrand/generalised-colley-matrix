@@ -418,7 +418,7 @@ document.addEventListener('DOMContentLoaded', function () {
                   })
                );
             } else {
-               newDiv.textContent = '[' + countyBar.countyCode.toUpperCase() + ']';
+               newDiv.replaceChildren('[' + countyBar.countyCode.toUpperCase() + ']');
             }
             return newDiv;
          }));
