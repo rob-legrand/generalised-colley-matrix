@@ -394,22 +394,11 @@ document.addEventListener('DOMContentLoaded', function () {
             if (county !== undefined) {
                newDiv.title = (whichPlace + 1) + '. ' + county.countyName;
                newDiv.classList.add('county-bar');
-               const newCountyNameDiv = counties.createCountyElement({
-                  classList: ['county-name'],
-                  textContent: (whichPlace + 1) + '. ' + county.countyName
-               });
-               const newCodeDiv = counties.createCountyElement({
-                  county: county,
-                  classList: ['county-code', 'county-colour-name'],
-                  textContent: county.countyCode.toUpperCase()
-               });
-               const newClassDiv = counties.createCountyElement({
-                  county: county,
-                  textType: 'classLevel',
-                  colourStyle: 'none'
-               });
                newDiv.replaceChildren(
-                  newCountyNameDiv,
+                  counties.createCountyElement({
+                     classList: ['county-name'],
+                     textContent: (whichPlace + 1) + '. ' + county.countyName
+                  }),
                   counties.createCanvas({
                      colours: county.colours,
                      height: Math.round(40 + countyBar.barLength * 200),
@@ -417,8 +406,16 @@ document.addEventListener('DOMContentLoaded', function () {
                      isVertical: true,
                      width: 40
                   }),
-                  newCodeDiv,
-                  newClassDiv
+                  counties.createCountyElement({
+                     county: county,
+                     classList: ['county-code', 'county-colour-name'],
+                     textContent: county.countyCode.toUpperCase()
+                  }),
+                  counties.createCountyElement({
+                     county: county,
+                     textType: 'classLevel',
+                     colourStyle: 'none'
+                  })
                );
             } else {
                newDiv.textContent = '[' + countyBar.countyCode.toUpperCase() + ']';
