@@ -397,7 +397,7 @@ document.addEventListener('DOMContentLoaded', function () {
                newDiv.replaceChildren(
                   counties.createCountyElement({
                      classList: ['county-name'],
-                     textContent: (whichPlace + 1) + '. ' + county.countyName
+                     children: [(whichPlace + 1) + '. ' + county.countyName]
                   }),
                   counties.createCanvas({
                      colours: county.colours,
@@ -409,7 +409,7 @@ document.addEventListener('DOMContentLoaded', function () {
                   counties.createCountyElement({
                      county: county,
                      classList: ['county-code', 'county-colour-name'],
-                     textContent: county.countyCode.toUpperCase()
+                     children: [county.countyCode.toUpperCase()]
                   }),
                   counties.createCountyElement({
                      county: county,
