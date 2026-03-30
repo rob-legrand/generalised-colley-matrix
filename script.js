@@ -387,38 +387,42 @@ document.addEventListener('DOMContentLoaded', function () {
             })
          );
          barsElement.replaceChildren(...countiesBars.map(function (countyBar, whichPlace) {
-            const newDiv = document.createElement('div');
+            let newDiv;
             const county = countiesInfo.find(
                (c) => c.countyCode === countyBar.countyCode
             );
             if (county !== undefined) {
-               newDiv.title = (whichPlace + 1) + '. ' + county.countyName;
-               newDiv.classList.add('county-bar');
-               newDiv.replaceChildren(
-                  counties.createCountyElement({
-                     classList: ['county-name'],
-                     children: [(whichPlace + 1) + '. ' + county.countyName]
-                  }),
-                  counties.createCanvas({
-                     colours: county.colours,
-                     height: Math.round(40 + countyBar.barLength * 200),
-                     isHorizontal: true,
-                     isVertical: true,
-                     width: 40
-                  }),
-                  counties.createCountyElement({
-                     county: county,
-                     classList: ['county-code', 'county-colour-name'],
-                     children: [county.countyCode.toUpperCase()]
-                  }),
-                  counties.createCountyElement({
-                     county: county,
-                     textType: 'classLevel',
-                     colourStyle: 'none'
-                  })
-               );
+               newDiv = counties.createCountyElement({
+                  attributes: {title: (whichPlace + 1) + '. ' + county.countyName},
+                  classList: ['county-bar'],
+                  children: [
+                     counties.createCountyElement({
+                        classList: ['county-name'],
+                        children: [(whichPlace + 1) + '. ' + county.countyName]
+                     }),
+                     counties.createCanvas({
+                        colours: county.colours,
+                        height: Math.round(40 + countyBar.barLength * 200),
+                        isHorizontal: true,
+                        isVertical: true,
+                        width: 40
+                     }),
+                     counties.createCountyElement({
+                        county: county,
+                        classList: ['county-code', 'county-colour-name'],
+                        children: [county.countyCode.toUpperCase()]
+                     }),
+                     counties.createCountyElement({
+                        county: county,
+                        textType: 'classLevel',
+                        colourStyle: 'none'
+                     })
+                  ]
+               });
             } else {
-               newDiv.replaceChildren('[' + countyBar.countyCode.toUpperCase() + ']');
+               newDiv = counties.createCountyElement({
+                  children: ['[' + countyBar.countyCode.toUpperCase() + ']']
+               });
             }
             return newDiv;
          }));
