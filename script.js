@@ -388,8 +388,8 @@ document.addEventListener('DOMContentLoaded', function () {
                )
             })
          );
-         barsElement.replaceChildren(...countiesBars.map(function (countyBar, whichPlace) {
-            return counties.createCountyElement({
+         barsElement.replaceChildren(...countiesBars.map(
+            (countyBar, whichPlace) => counties.createCountyElement({
                attributes: (
                   countyBar?.county?.countyName === undefined
                   ? {}
@@ -425,8 +425,8 @@ document.addEventListener('DOMContentLoaded', function () {
                      })
                   ]
                )
-            });
-         }));
+            })
+         ));
       };
 
       const getCountyMatches = function (year, weight = 1) {
