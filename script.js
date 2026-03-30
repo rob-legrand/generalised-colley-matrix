@@ -378,7 +378,9 @@ document.addEventListener('DOMContentLoaded', function () {
          const worstRating = Math.min(...standings.map((team) => team.adjustedRating));
          const countiesBars = standings.map(
             (team) => ({
-               countyCode: team.name,
+               county: countiesInfo.find(
+                  (c) => c.countyCode === team.name
+               ) ?? team.name,
                barLength: (
                   bestRating > worstRating
                   ? (team.adjustedRating - worstRating) / (bestRating - worstRating)
@@ -387,38 +389,37 @@ document.addEventListener('DOMContentLoaded', function () {
             })
          );
          barsElement.replaceChildren(...countiesBars.map(function (countyBar, whichPlace) {
-            const county = countiesInfo.find(
-               (c) => c.countyCode === countyBar.countyCode
-            );
             return counties.createCountyElement({
                attributes: (
-                  county?.countyName === undefined
+                  countyBar?.county?.countyName === undefined
                   ? {}
-                  : {title: (whichPlace + 1) + '. ' + county.countyName}
+                  : {title: (whichPlace + 1) + '. ' + countyBar.county.countyName}
                ),
                classList: ['county-bar'],
                children: (
-                  county?.countyName === undefined
-                  ? ['[' + countyBar.countyCode.toUpperCase() + ']']
+                  countyBar?.county?.countyName === undefined
+                  ? ['[' + (
+                     countyBar?.county?.toUpperCase?.() ?? '?'
+                  ) + ']']
                   : [
                      counties.createCountyElement({
                         classList: ['county-name'],
-                        children: [(whichPlace + 1) + '. ' + county.countyName]
+                        children: [(whichPlace + 1) + '. ' + countyBar.county.countyName]
                      }),
                      counties.createCanvas({
-                        colours: county.colours,
+                        colours: countyBar.county.colours,
                         height: Math.round(40 + countyBar.barLength * 200),
                         isHorizontal: true,
                         isVertical: true,
                         width: 40
                      }),
                      counties.createCountyElement({
-                        county: county,
+                        county: countyBar.county,
                         classList: ['county-code', 'county-colour-name'],
-                        children: [county.countyCode.toUpperCase()]
+                        children: [countyBar.county.countyCode?.toUpperCase?.() ?? '?']
                      }),
                      counties.createCountyElement({
-                        county: county,
+                        county: countyBar.county,
                         textType: 'classLevel',
                         colourStyle: 'none'
                      })
