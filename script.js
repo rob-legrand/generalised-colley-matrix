@@ -387,15 +387,20 @@ document.addEventListener('DOMContentLoaded', function () {
             })
          );
          barsElement.replaceChildren(...countiesBars.map(function (countyBar, whichPlace) {
-            let newDiv;
             const county = countiesInfo.find(
                (c) => c.countyCode === countyBar.countyCode
             );
-            if (county !== undefined) {
-               newDiv = counties.createCountyElement({
-                  attributes: {title: (whichPlace + 1) + '. ' + county.countyName},
-                  classList: ['county-bar'],
-                  children: [
+            return counties.createCountyElement({
+               attributes: (
+                  county?.countyName === undefined
+                  ? {}
+                  : {title: (whichPlace + 1) + '. ' + county.countyName}
+               ),
+               classList: ['county-bar'],
+               children: (
+                  county?.countyName === undefined
+                  ? ['[' + countyBar.countyCode.toUpperCase() + ']']
+                  : [
                      counties.createCountyElement({
                         classList: ['county-name'],
                         children: [(whichPlace + 1) + '. ' + county.countyName]
@@ -418,13 +423,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         colourStyle: 'none'
                      })
                   ]
-               });
-            } else {
-               newDiv = counties.createCountyElement({
-                  children: ['[' + countyBar.countyCode.toUpperCase() + ']']
-               });
-            }
-            return newDiv;
+               )
+            });
          }));
       };
 
