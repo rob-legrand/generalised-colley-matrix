@@ -390,11 +390,13 @@ document.addEventListener('DOMContentLoaded', function () {
          );
          barsElement.replaceChildren(...countiesBars.map(
             (countyBar, whichPlace) => counties.createCountyElement({
-               attributes: (
-                  countyBar?.county?.countyName === undefined
-                  ? {}
-                  : {title: (whichPlace + 1) + '. ' + countyBar.county.countyName}
-               ),
+               attributes: {
+                  title: (whichPlace + 1) + '. ' + (
+                     countyBar?.county?.countyName === undefined
+                     ? countyBar?.county?.toUpperCase?.() ?? '?'
+                     : countyBar.county.countyName
+                  )
+               },
                classList: ['county-bar'],
                children: (
                   countyBar?.county?.countyName === undefined
