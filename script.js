@@ -328,7 +328,7 @@ document.addEventListener('DOMContentLoaded', function () {
                averagePointsConcededForLaplace: team.averagePointsConcededForLaplace,
                numMatches: colley.getNumMatches(team)
             })
-         ).sort(
+         ).toSorted(
             (team1, team2) => (
                team2.adjustedRating - team1.adjustedRating
                || countiesInfo.findIndex(
