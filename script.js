@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
    document.querySelector('#add-matches').replaceChildren(
       ...countySeasons.map(
-         (countySeason) => counties.createCountyElement({
+         (countySeason) => counties.createElement({
             elementType: 'button',
             attributes: {type: 'button'},
             children: [countySeason]
@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
    document.querySelector('#from-season').replaceChildren(
       ...countySeasons.map(
-         (countySeason) => counties.createCountyElement({
+         (countySeason) => counties.createElement({
             elementType: 'option',
             attributes: {value: countySeason},
             children: [countySeason]
@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
    document.querySelector('#to-season').replaceChildren(
       ...countySeasons.map(
-         (countySeason) => counties.createCountyElement({
+         (countySeason) => counties.createElement({
             elementType: 'option',
             attributes: {value: countySeason},
             children: [countySeason]
@@ -389,7 +389,7 @@ document.addEventListener('DOMContentLoaded', function () {
             })
          );
          barsElement.replaceChildren(...countiesBars.map(
-            (countyBar, whichPlace) => counties.createCountyElement({
+            (countyBar, whichPlace) => counties.createElement({
                attributes: {
                   title: (whichPlace + 1) + '. ' + (
                      countyBar?.county?.countyName === undefined
@@ -404,7 +404,7 @@ document.addEventListener('DOMContentLoaded', function () {
                      countyBar?.county?.toUpperCase?.() ?? '?'
                   ) + ']']
                   : [
-                     counties.createCountyElement({
+                     counties.createElement({
                         classList: ['county-name'],
                         children: [(whichPlace + 1) + '. ' + countyBar.county.countyName]
                      }),
@@ -415,12 +415,12 @@ document.addEventListener('DOMContentLoaded', function () {
                         isVertical: true,
                         width: 40
                      }),
-                     counties.createCountyElement({
+                     counties.createElement({
                         county: countyBar.county,
                         classList: ['county-code', 'county-colour-name'],
                         children: [countyBar.county.countyCode?.toUpperCase?.() ?? '?']
                      }),
-                     counties.createCountyElement({
+                     counties.createElement({
                         county: countyBar.county,
                         textType: 'classLevel',
                         colourStyle: 'none'
