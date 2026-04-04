@@ -209,7 +209,8 @@ document.addEventListener('DOMContentLoaded', function () {
             oldLeague.forEach(function (team, whichTeam) {
                const numMatchesPlayed = self.getNumMatches(team);
                newLeague[whichTeam].effectivePointsEarned = team.actualPointsEarned + strengthOfScheduleFactor * (
-                  numMatchesPlayed * averageActualPointsPerMatch - self.getOpponentsTotalRatingsConceded(oldLeague, whichTeam)
+                  numMatchesPlayed * averageActualPointsPerMatch
+                  - self.getOpponentsTotalRatingsConceded(oldLeague, whichTeam)
                );
                newLeague[whichTeam].ratingEarned = (
                   laplaceEquivalentMatches * team.averagePointsEarnedForLaplace
@@ -219,7 +220,8 @@ document.addEventListener('DOMContentLoaded', function () {
                   + numMatchesPlayed
                );
                newLeague[whichTeam].effectivePointsConceded = team.actualPointsConceded + strengthOfScheduleFactor * (
-                  numMatchesPlayed * averageActualPointsPerMatch - self.getOpponentsTotalRatingsEarned(oldLeague, whichTeam)
+                  numMatchesPlayed * averageActualPointsPerMatch
+                  - self.getOpponentsTotalRatingsEarned(oldLeague, whichTeam)
                );
                newLeague[whichTeam].ratingConceded = (
                   laplaceEquivalentMatches * team.averagePointsConcededForLaplace
@@ -236,7 +238,10 @@ document.addEventListener('DOMContentLoaded', function () {
             newLeague.forEach(function (team) {
                team.ratingEarned = team?.ratingEarned ?? 0;
             });
-            const averageRatingDeficit = self.getAveragePointsPerMatch(oldLeague) - self.getAverageRatingEarned(oldLeague);
+            const averageRatingDeficit = (
+               self.getAveragePointsPerMatch(oldLeague)
+               - self.getAverageRatingEarned(oldLeague)
+            );
             newLeague.forEach(function (team) {
                team.ratingEarned += averageRatingDeficit;
             });
@@ -320,8 +325,14 @@ document.addEventListener('DOMContentLoaded', function () {
                ratingEarned: team.ratingEarned,
                nextRatingEarned: colley.iterateRatings(colleyLeague, colleyOptions)[whichTeam].ratingEarned,
                ratingConceded: team.ratingConceded,
-               opponentsRatingEarned: colley.getOpponentsTotalRatingsEarned(colleyLeague, whichTeam) / colley.getNumMatches(team),
-               opponentsRatingConceded: colley.getOpponentsTotalRatingsConceded(colleyLeague, whichTeam) / colley.getNumMatches(team),
+               opponentsRatingEarned: (
+                  colley.getOpponentsTotalRatingsEarned(colleyLeague, whichTeam)
+                  / colley.getNumMatches(team)
+               ),
+               opponentsRatingConceded: (
+                  colley.getOpponentsTotalRatingsConceded(colleyLeague, whichTeam)
+                  / colley.getNumMatches(team)
+               ),
                averagePointsEarnedPerMatch: colley.getAveragePointsEarnedPerMatch(team),
                averagePointsConcededPerMatch: colley.getAveragePointsConcededPerMatch(team),
                averagePointsEarnedForLaplace: team.averagePointsEarnedForLaplace,
@@ -576,8 +587,10 @@ document.addEventListener('DOMContentLoaded', function () {
       });
 
       document.querySelector('#add-implied-matches').addEventListener('click', function () {
-         // for every county A and every county B, if A is one class higher than B, then add 3 wins for A over B and 1 draw
-         // or: for every county A and every county B, if A is a higher class than B, then add 3 wins for A over B and 1 draw
+         // for every county A and every county B,
+         //    if A is one class higher than B, then add 3 wins for A over B and 1 draw
+         // or: for every county A and every county B,
+         //    if A is a higher class than B, then add 3 wins for A over B and 1 draw
          const impliedMatchesPerMatchupInput = Number(document.querySelector('#implied-matches-per-matchup').value);
          const weightOfEachMatchup = (
             (Number.isFinite(impliedMatchesPerMatchupInput) && impliedMatchesPerMatchupInput > 0)
@@ -659,7 +672,10 @@ document.addEventListener('DOMContentLoaded', function () {
                      weight
                   );
                } else {
-                  matchResultsInputElement.value = 'invalid match result: ' + inputTokens[1] + '\n' + matchResultsInputElement.value;
+                  matchResultsInputElement.value = (
+                     'invalid match result: ' + inputTokens[1] + '\n'
+                     + matchResultsInputElement.value
+                  );
                }
             }
          });
@@ -710,7 +726,10 @@ document.addEventListener('DOMContentLoaded', function () {
             } else {
                colleyOutputElement.value += 'Done!  ' + numIterationsDone + ' iterations\n';
             }
-            colleyOutputElement.value += colley.totalRatingsDifference(oldColleyLeague, colleyLeague) + ' total ratings difference';
+            colleyOutputElement.value += (
+               colley.totalRatingsDifference(oldColleyLeague, colleyLeague)
+               + ' total ratings difference'
+            );
          }(0));
       });
 
