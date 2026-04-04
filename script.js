@@ -1,4 +1,4 @@
-/*jslint browser */
+/*jslint browser, maxlen: 120 */
 
 import {counties} from '/county-cricket-colours/counties.js';
 
