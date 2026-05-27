@@ -713,7 +713,7 @@ document.addEventListener('DOMContentLoaded', function () {
             : 'avgMatchesPlayed'
          );
          colleyLeague = colley.iterateRatings(getLeagueInput());
-         (function keepIterating(numIterationsDone) {
+         (function keepIterating(numIterationsDone = 0) {
             numIterationsDone += 1;
             const oldColleyLeague = colleyLeague;
             colleyLeague = colley.iterateRatings(colleyLeague, colleyOptions);
@@ -730,7 +730,7 @@ document.addEventListener('DOMContentLoaded', function () {
                colley.totalRatingsDifference(oldColleyLeague, colleyLeague)
                + ' total ratings difference'
             );
-         }(0));
+         }());
       });
 
       colleyLeague = colley.createLeague();
