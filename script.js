@@ -437,6 +437,11 @@ document.addEventListener('DOMContentLoaded', function () {
                         colourStyle: 'none'
                      })
                   ]
+               ),
+               tooltip: (whichPlace + 1) + '. ' + (
+                  countyBar?.county?.countyName === undefined
+                  ? countyBar?.county?.toUpperCase?.() ?? '?'
+                  : countyBar.county.countyName
                )
             })
          ));
