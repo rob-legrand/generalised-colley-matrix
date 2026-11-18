@@ -401,13 +401,6 @@ document.addEventListener('DOMContentLoaded', function () {
          );
          barsElement.replaceChildren(...countiesBars.map(
             (countyBar, whichPlace) => counties.createElement({
-               attributes: {
-                  title: (whichPlace + 1) + '. ' + (
-                     countyBar?.county?.countyName === undefined
-                     ? countyBar?.county?.toUpperCase?.() ?? '?'
-                     : countyBar.county.countyName
-                  )
-               },
                classList: ['county-bar'],
                children: (
                   countyBar?.county?.countyName === undefined
